@@ -44,13 +44,13 @@
         /* Sol Ana Menü (Mevcut) */
         aside.left-sidebar {
             width: 400px;
-            background: var(--surface);
+            background: var(--bg);
             border-right: 1px solid var(--border);
-            padding: 32px 28px;
+            padding: 28px 20px 28px 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 28px;
+            gap: 10px;
             box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
             z-index: 10;
         }
@@ -70,6 +70,143 @@
 
         aside.left-sidebar::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
+        }
+
+        /* ============================================
+           ACCORDION STYLES
+           ============================================ */
+        .accordion-item {
+            border-radius: 12px;
+            overflow: visible;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+            transition: box-shadow 0.25s ease;
+        }
+
+        .accordion-item.open {
+            box-shadow: 0 6px 24px rgba(79, 70, 229, 0.12);
+            border-color: rgba(79, 70, 229, 0.25);
+        }
+
+        .accordion-btn {
+            width: 100%;
+            background: #fff;
+            border: none;
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            border-radius: 12px;
+            box-shadow: none;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background 0.2s ease, color 0.2s ease, border-radius 0.1s;
+            position: relative;
+            letter-spacing: 0;
+        }
+
+        .accordion-item.open .accordion-btn {
+            border-radius: 12px 12px 0 0;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(129, 140, 248, 0.06) 100%);
+            color: var(--primary);
+        }
+
+        .accordion-btn:hover {
+            background: #f8fafc;
+            color: var(--primary);
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .accordion-btn::after {
+            content: '';
+            display: none;
+        }
+
+        .accordion-item.open .accordion-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--primary) 0%, #818cf8 100%);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .accordion-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .accordion-item.open .accordion-icon {
+            background: rgba(79, 70, 229, 0.1) !important;
+        }
+
+        .accordion-title {
+            flex: 1;
+        }
+
+        .accordion-title strong {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .accordion-title span {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .accordion-item.open .accordion-title span {
+            color: rgba(79, 70, 229, 0.7);
+        }
+
+        .accordion-chevron {
+            color: var(--text-muted);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .accordion-item.open .accordion-chevron {
+            transform: rotate(180deg);
+            color: var(--primary);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 0;
+            background: #fff;
+        }
+
+        .accordion-item.open .accordion-body {
+            max-height: 1200px;
+            opacity: 1;
+        }
+
+        .accordion-body-inner {
+            padding: 4px 20px 20px 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .accordion-body h2 {
+            display: none;
         }
 
         /* Sağ Araç Çekmece Paneli */
@@ -851,129 +988,214 @@
         </h1>
         <div id="alert-box" class="alert"></div>
 
-        <div id="panel-load-project" class="card" style="margin-bottom: 20px;">
-            <h2>Kayıtlı Projelerim</h2>
-            <div class="form-group">
-                <select id="saved-projects-list">
-                    <option value="">-- Proje Seçin --</option>
-                </select>
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button id="btn-load-project" class="outline">Projeyi Aç</button>
-                <button id="btn-edit-project" class="outline">Yeniden Adlandır</button>
-                <button id="btn-delete-project" class="outline" style="color:red; border-color:red;">Sil</button>
-            </div>
-        </div>
+        <!-- ==========================================
+             ACCORDION PANELLER
+             ========================================== -->
 
-        <div id="panel-project">
-            <div class="card">
-                <h2>Dolap Rengi</h2>
-                <div class="color-picker" id="cabinet-color-picker">
-                    <div class="color-btn active" data-color="white" data-hex="#ffffff" data-handle="#334155"
-                        title="Beyaz"></div>
-                    <div class="color-btn" data-color="gray" data-hex="#94a3b8" data-handle="#ffffff" title="Gri"></div>
-                    <div class="color-btn" data-color="wood" data-hex="#d97706" data-handle="#0a0a0a" title="Ahşap">
+        <!-- 1) Kayıtlı Projelerim -->
+        <div class="accordion-item open" id="panel-load-project">
+            <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <div class="accordion-icon" style="background:#eff6ff;">📁</div>
+                <div class="accordion-title">
+                    <strong>Kayıtlı Projelerim</strong>
+                    <span>Projeleri aç, yeniden adlandır veya sil</span>
+                </div>
+                <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="accordion-body">
+                <div class="accordion-body-inner">
+                    <div class="form-group" style="margin-top:12px;">
+                        <select id="saved-projects-list">
+                            <option value="">-- Proje Seçin --</option>
+                        </select>
                     </div>
-                    <div class="color-btn" data-color="darkgray" data-hex="#334155" data-handle="#ffffff"
-                        title="Koyu Gri"></div>
-                    <div class="color-btn" data-color="black" data-hex="#0a0a0a" data-handle="#ffffff" title="Siyah">
+                    <div style="display:flex; gap:8px;">
+                        <button id="btn-load-project" class="outline">Projeyi Aç</button>
+                        <button id="btn-edit-project" class="outline">Yeniden Adlandır</button>
+                        <button id="btn-delete-project" class="outline"
+                            style="color:red; border-color:red;">Sil</button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="card" style="margin-top:20px;">
-                <h2>Yeni Proje</h2>
-                <form id="form-project">
-                    <div class="form-group"><label>Proje Adı</label><input type="text" id="proj-name" required
-                            placeholder="Örn: Mutfak Yenileme"></div>
-                    <div class="form-group">
-                        <label>Yerleşim Tipi</label>
-                        <select id="proj-layout">
-                            <option value="STRAIGHT">Düz (Tek Duvar)</option>
-                            <option value="L">L Tipi (İki Duvar)</option>
-                        </select>
+        <!-- 2) Dolap Rengi -->
+        <div class="accordion-item" id="panel-cab-color">
+            <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <div class="accordion-icon" style="background:#fff7ed;">🎨</div>
+                <div class="accordion-title">
+                    <strong>Dolap Rengi</strong>
+                    <span>Renk teması seç</span>
+                </div>
+                <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="accordion-body">
+                <div class="accordion-body-inner">
+                    <div class="color-picker" id="cabinet-color-picker" style="margin-top:12px;">
+                        <div class="color-btn active" data-color="white" data-hex="#ffffff" data-handle="#334155"
+                            title="Beyaz"></div>
+                        <div class="color-btn" data-color="gray" data-hex="#94a3b8" data-handle="#ffffff" title="Gri">
+                        </div>
+                        <div class="color-btn" data-color="wood" data-hex="#d97706" data-handle="#0a0a0a" title="Ahşap">
+                        </div>
+                        <div class="color-btn" data-color="darkgray" data-hex="#334155" data-handle="#ffffff"
+                            title="Koyu Gri"></div>
+                        <div class="color-btn" data-color="black" data-hex="#0a0a0a" data-handle="#ffffff"
+                            title="Siyah"></div>
                     </div>
-                    <button type="submit">Proje Oluştur</button>
-                </form>
+                </div>
             </div>
         </div>
 
-        <div id="panel-workspace" style="opacity: 0.5; pointer-events: none;">
-            <div class="card">
-                <h2>Duvar Ölçüleri</h2>
-                <form id="form-segment">
-                    <div class="row">
-                        <div class="form-group"><label>A Duvarı Uzunluk (mm)</label><input type="number" id="seg-len-a"
-                                required placeholder="3000"></div>
-                        <div class="form-group"><label>A Duvarı Yükseklik</label><input type="number" id="seg-h-a"
-                                required value="2500"></div>
-                    </div>
-                    <div class="row" id="group-seg-b" style="display:none;">
-                        <div class="form-group"><label>B Duvarı Uzunluk (mm)</label><input type="number" id="seg-len-b"
-                                placeholder="2000"></div>
-                        <div class="form-group"><label>B Duvarı Yükseklik</label><input type="number" id="seg-h-b"
-                                value="2500"></div>
-                    </div>
-                    <button type="submit" class="outline">Ölçüleri Kaydet</button>
-                </form>
+        <!-- 3) Yeni Proje -->
+        <div class="accordion-item open" id="panel-project">
+            <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <div class="accordion-icon" style="background:#f0fdf4;">✨</div>
+                <div class="accordion-title">
+                    <strong>Yeni Proje</strong>
+                    <span>Proje oluştur, yerleşim tipini belirle</span>
+                </div>
+                <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="accordion-body">
+                <div class="accordion-body-inner">
+                    <form id="form-project" style="margin-top:12px;">
+                        <div class="form-group">
+                            <label>Proje Adı</label>
+                            <input type="text" id="proj-name" required placeholder="Örn: Mutfak Yenileme">
+                        </div>
+                        <div class="form-group">
+                            <label>Yerleşim Tipi</label>
+                            <select id="proj-layout">
+                                <option value="STRAIGHT">Düz (Tek Duvar)</option>
+                                <option value="L">L Tipi (İki Duvar)</option>
+                            </select>
+                        </div>
+                        <button type="submit">Proje Oluştur</button>
+                    </form>
+                </div>
             </div>
-
-            <div class="card" id="card-appl">
-                <h2>Beyaz Eşya Ekle</h2>
-                <form id="form-appliance">
-                    <div class="form-group"><label>Duvar</label><select id="appl-seg"></select></div>
-
-                    <label>Beyaz Eşya Tipi</label>
-                    <div class="appliance-picker" id="appliance-picker">
-                        <div class="app-btn active" data-type="FRIDGE" data-width="800">
-                            <div class="app-icon icon-fridge"></div>
-                            <span>Buzdolabı</span>
-                        </div>
-                        <div class="app-btn" data-type="DW" data-width="600">
-                            <div class="app-icon icon-dw"></div>
-                            <span>Bulaşık Mak.</span>
-                        </div>
-                        <div class="app-btn" data-type="WM" data-width="600">
-                            <div class="app-icon icon-wm"></div>
-                            <span>Çamaşır Mak.</span>
-                        </div>
-                        <div class="app-btn" data-type="OVEN" data-width="600">
-                            <div class="app-icon icon-oven"></div>
-                            <span>Fırın</span>
-                        </div>
-                        <div class="app-btn" data-type="HOOD" data-width="600">
-                            <div class="app-icon icon-hood"></div>
-                            <span>Davlumbaz</span>
-                        </div>
-                        <div class="app-btn" data-type="SINK" data-width="800">
-                            <div class="app-icon icon-sink"></div>
-                            <span>Evye</span>
-                        </div>
-                        <div class="app-btn" data-type="CORNER" data-width="900">
-                            <div class="app-icon icon-corner"></div>
-                            <span>Kör Köşe</span>
-                        </div>
-                    </div>
-                    <!-- Hidden input to store selected type -->
-                    <input type="hidden" id="appl-type" value="FRIDGE">
-
-                    <div class="form-group" style="margin-top:16px;">
-                        <label>Genişlik (mm)</label>
-                        <input type="number" id="appl-width" required value="800">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Konum X (mm)</label>
-                        <input type="number" id="appl-start" placeholder="Boş sa sona ekler">
-                    </div>
-                    <button type="submit" class="outline">Listeye Ekle</button>
-                </form>
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">* Eklendikten sonra 2D Planda
-                    sürükle-bırak ile taşıyabilirsiniz.</p>
-            </div>
-
-
         </div>
+
+        <!-- 4) Duvar Ölçüleri -->
+        <div class="accordion-item" id="panel-segment" style="opacity: 0.5; pointer-events: none;">
+            <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <div class="accordion-icon" style="background:#f5f3ff;">📐</div>
+                <div class="accordion-title">
+                    <strong>Duvar Ölçüleri</strong>
+                    <span>A ve B duvarlarının uzunluğu &amp; yüksekliği</span>
+                </div>
+                <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="accordion-body">
+                <div class="accordion-body-inner">
+                    <form id="form-segment" style="margin-top:12px;">
+                        <div class="row">
+                            <div class="form-group">
+                                <label>A Duvarı Uzunluk (mm)</label>
+                                <input type="number" id="seg-len-a" required placeholder="3000">
+                            </div>
+                            <div class="form-group">
+                                <label>A Duvarı Yükseklik</label>
+                                <input type="number" id="seg-h-a" required value="2500">
+                            </div>
+                        </div>
+                        <div class="row" id="group-seg-b" style="display:none;">
+                            <div class="form-group">
+                                <label>B Duvarı Uzunluk (mm)</label>
+                                <input type="number" id="seg-len-b" placeholder="2000">
+                            </div>
+                            <div class="form-group">
+                                <label>B Duvarı Yükseklik</label>
+                                <input type="number" id="seg-h-b" value="2500">
+                            </div>
+                        </div>
+                        <button type="submit" class="outline">Ölçüleri Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5) Beyaz Eşya -->
+        <div class="accordion-item" id="panel-workspace" style="opacity: 0.5; pointer-events: none;">
+            <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <div class="accordion-icon" style="background:#ecfeff;">🍽️</div>
+                <div class="accordion-title">
+                    <strong>Beyaz Eşya Ekle</strong>
+                    <span>Buzdolabı, fırın, evye ve daha fazlası</span>
+                </div>
+                <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="accordion-body">
+                <div class="accordion-body-inner" id="card-appl">
+                    <form id="form-appliance" style="margin-top:12px;">
+                        <div class="form-group">
+                            <label>Duvar</label>
+                            <select id="appl-seg"></select>
+                        </div>
+                        <label>Beyaz Eşya Tipi</label>
+                        <div class="appliance-picker" id="appliance-picker">
+                            <div class="app-btn active" data-type="FRIDGE" data-width="800">
+                                <div class="app-icon icon-fridge"></div>
+                                <span>Buzdolabı</span>
+                            </div>
+                            <div class="app-btn" data-type="DW" data-width="600">
+                                <div class="app-icon icon-dw"></div>
+                                <span>Bulaşık Mak.</span>
+                            </div>
+                            <div class="app-btn" data-type="WM" data-width="600">
+                                <div class="app-icon icon-wm"></div>
+                                <span>Çamaşır Mak.</span>
+                            </div>
+                            <div class="app-btn" data-type="OVEN" data-width="600">
+                                <div class="app-icon icon-oven"></div>
+                                <span>Fırın</span>
+                            </div>
+                            <div class="app-btn" data-type="HOOD" data-width="600">
+                                <div class="app-icon icon-hood"></div>
+                                <span>Davlumbaz</span>
+                            </div>
+                            <div class="app-btn" data-type="SINK" data-width="800">
+                                <div class="app-icon icon-sink"></div>
+                                <span>Evye</span>
+                            </div>
+                            <div class="app-btn" data-type="CORNER" data-width="900">
+                                <div class="app-icon icon-corner"></div>
+                                <span>Kör Köşe</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="appl-type" value="FRIDGE">
+                        <div class="form-group" style="margin-top:16px;">
+                            <label>Genişlik (mm)</label>
+                            <input type="number" id="appl-width" required value="800">
+                        </div>
+                        <div class="form-group">
+                            <label>Konum X (mm)</label>
+                            <input type="number" id="appl-start" placeholder="Boş sa sona ekler">
+                        </div>
+                        <button type="submit" class="outline">Listeye Ekle</button>
+                    </form>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">* Eklendikten sonra 2D Planda
+                        sürükle-bırak ile taşıyabilirsiniz.</p>
+                </div>
+            </div>
+        </div>
+
     </aside>
 
     <main>
@@ -1156,6 +1378,40 @@
                 </div>
             </div>
 
+            <!-- Gap (Boşluk) Düzenleme Paneli -->
+            <div id="gap-ctx" style="display:none;">
+                <div class="ctx-section">
+                    <label>Boşluk Bilgisi</label>
+                    <div
+                        style="font-size:13px; color:#64748b; background:rgba(148,163,184,0.1); border-radius:8px; padding:10px; margin-top:6px;">
+                        <span id="gap-info-text">—</span>
+                    </div>
+                </div>
+                <div class="ctx-section">
+                    <label>Genişlet</label>
+                    <div class="ctx-grid">
+                        <button id="btn-gap-expand-left">⬅ Solu Genişlet</button>
+                        <button id="btn-gap-expand-right">Sağı Genişlet ➡</button>
+                    </div>
+                </div>
+                <div class="ctx-section">
+                    <label>Boşluğu Doldur</label>
+                    <div class="ctx-grid-full">
+                        <button id="btn-gap-fill" style="background:var(--primary); color:#fff; padding:12px;">
+                            ✅ Yeni Dolap Ekle
+                        </button>
+                    </div>
+                </div>
+                <div class="ctx-section" style="margin-bottom:0;">
+                    <div class="ctx-grid-full">
+                        <button id="btn-gap-fill-kind"
+                            style="font-size:12px; color:#64748b; border-color:rgba(100,116,139,0.3); padding:10px;">
+                            🔄 Üst / Alt Geçiş
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </aside>
 
         <!-- Tools Backdrop (click outside to close) -->
@@ -1313,6 +1569,30 @@
                 });
             }
 
+            /* =============================================
+               ACCORDION TOGGLE
+               ============================================= */
+            function toggleAccordion(btn) {
+                const item = btn.closest('.accordion-item');
+                const isOpen = item.classList.contains('open');
+                // Toggle current
+                item.classList.toggle('open', !isOpen);
+            }
+
+            function activateWorkspacePanels() {
+                const seg = document.getElementById('panel-segment');
+                const ws = document.getElementById('panel-workspace');
+                if (seg) {
+                    seg.style.opacity = '1';
+                    seg.style.pointerEvents = 'auto';
+                    seg.classList.add('open');
+                }
+                if (ws) {
+                    ws.style.opacity = '1';
+                    ws.style.pointerEvents = 'auto';
+                }
+            }
+
             function showToolSidebar() {
                 const sidebar = document.getElementById('tools-sidebar');
                 const backdrop = document.getElementById('tools-backdrop');
@@ -1347,9 +1627,7 @@
                     appliances = [];
                     cabinets = [];
 
-                    const ws = document.getElementById('panel-workspace');
-                    ws.style.opacity = '1';
-                    ws.style.pointerEvents = 'auto';
+                    activateWorkspacePanels();
 
                     // Clear UI
                     await reloadData();
@@ -1851,6 +2129,7 @@
                             // Draw Cabinets
                             const segCabs = cabinets.filter(c => c.segment === seg.id && c.kind !== 'EMPTY_BASE' && c.kind !==
                                 'EMPTY_WALL');
+                            const segEmpties = cabinets.filter(c => c.segment === seg.id && (c.kind === 'EMPTY_BASE' || c.kind === 'EMPTY_WALL'));
                             const legH_mm = 100;
                             segCabs.forEach(cab => {
                                 const w = cab.width_mm * currentScale;
@@ -2234,6 +2513,73 @@
                                     }));
                                 }
                                 svg.appendChild(g);
+                            });
+
+                            // Draw EMPTY cabinets (gaps) as clickable hatched zones
+                            segEmpties.forEach(cab => {
+                                const w = cab.width_mm * currentScale;
+                                const h = cab.height_mm * currentScale;
+                                const x = cab.start_mm * currentScale;
+                                let y;
+                                if (cab.kind === 'EMPTY_BASE') {
+                                    y = floorY - (legH_mm * currentScale) - h;
+                                } else {
+                                    const topY = floorY - ((legH_mm + project.base_height + 40 + (project.gap_height || 600) + project.wall_height) * currentScale);
+                                    y = topY;
+                                }
+                                const gGap = document.createElementNS(svgNS, "g");
+                                gGap.style.cursor = 'pointer';
+
+                                // Dashed border rect
+                                const gapRect = createSVGElem("rect", {
+                                    x, y, width: w, height: h, rx: 4,
+                                    fill: "rgba(148,163,184,0.08)",
+                                    stroke: "#94a3b8",
+                                    "stroke-width": 1.5,
+                                    "stroke-dasharray": "6,4",
+                                    "pointer-events": "all"
+                                });
+                                gGap.appendChild(gapRect);
+
+                                // Hatch lines
+                                const hatchStep = 12;
+                                for (let hx = x; hx < x + w; hx += hatchStep) {
+                                    gGap.appendChild(createSVGElem("line", {
+                                        x1: hx, y1: y,
+                                        x2: hx, y2: y + h,
+                                        stroke: "rgba(148,163,184,0.18)",
+                                        "stroke-width": 1, "pointer-events": "none"
+                                    }));
+                                }
+
+                                // Width label
+                                if (w > 24) {
+                                    const lbl = createSVGElem("text", {
+                                        x: x + w / 2, y: y + h / 2 - 6,
+                                        "text-anchor": "middle",
+                                        "font-size": "11px",
+                                        fill: "#94a3b8",
+                                        "pointer-events": "none",
+                                        "font-family": "Inter,sans-serif"
+                                    });
+                                    lbl.textContent = cab.width_mm + ' mm';
+                                    gGap.appendChild(lbl);
+
+                                    // "+" icon
+                                    const plus = createSVGElem("text", {
+                                        x: x + w / 2, y: y + h / 2 + 10,
+                                        "text-anchor": "middle",
+                                        "font-size": "18px",
+                                        fill: "#94a3b8",
+                                        "pointer-events": "none",
+                                        "font-family": "Inter,sans-serif"
+                                    });
+                                    plus.textContent = '+';
+                                    gGap.appendChild(plus);
+                                }
+
+                                gGap.onclick = (e) => { e.stopPropagation(); showGapContext(cab); };
+                                svg.appendChild(gGap);
                             });
 
                             // Draw Countertop Line across BASE cabinets (40mm thickness)
@@ -3437,10 +3783,7 @@
                         await reloadData();
 
                         if (project) {
-                            const ws =
-                                document.getElementById('panel-workspace');
-                            ws.style.opacity = '1';
-                            ws.style.pointerEvents = 'auto';
+                            activateWorkspacePanels();
                             document.getElementById('toolbar').style.display
                                 = 'flex';
                             document.getElementById('current-project-title').textContent
