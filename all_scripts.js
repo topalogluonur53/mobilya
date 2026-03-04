@@ -158,6 +158,30 @@
                 });
             }
 
+            /* =============================================
+               ACCORDION TOGGLE
+               ============================================= */
+            function toggleAccordion(btn) {
+                const item = btn.closest('.accordion-item');
+                const isOpen = item.classList.contains('open');
+                // Toggle current
+                item.classList.toggle('open', !isOpen);
+            }
+
+            function activateWorkspacePanels() {
+                const seg = document.getElementById('panel-segment');
+                const ws = document.getElementById('panel-workspace');
+                if (seg) {
+                    seg.style.opacity = '1';
+                    seg.style.pointerEvents = 'auto';
+                    seg.classList.add('open');
+                }
+                if (ws) {
+                    ws.style.opacity = '1';
+                    ws.style.pointerEvents = 'auto';
+                }
+            }
+
             function showToolSidebar() {
                 const sidebar = document.getElementById('tools-sidebar');
                 const backdrop = document.getElementById('tools-backdrop');
@@ -192,9 +216,7 @@
                     appliances = [];
                     cabinets = [];
 
-                    const ws = document.getElementById('panel-workspace');
-                    ws.style.opacity = '1';
-                    ws.style.pointerEvents = 'auto';
+                    activateWorkspacePanels();
 
                     // Clear UI
                     await reloadData();
@@ -696,6 +718,7 @@
                             // Draw Cabinets
                             const segCabs = cabinets.filter(c => c.segment === seg.id && c.kind !== 'EMPTY_BASE' && c.kind !==
                                 'EMPTY_WALL');
+                            const segEmpties = cabinets.filter(c => c.segment === seg.id && (c.kind === 'EMPTY_BASE' || c.kind === 'EMPTY_WALL'));
                             const legH_mm = 100;
                             segCabs.forEach(cab => {
                                 const w = cab.width_mm * currentScale;
@@ -725,6 +748,9 @@
                                 const is2Door = dStyle === '2' || (dStyle === 'AUTO' && cab.width_mm >= 600 && cab.width_mm < 1200); if
                                     (cab.kind === 'BASE' || cab.kind === 'WALL') {
                                     rect.onclick = (e) => showContext(e, cab);
+                                } else if (cab.kind === 'FILLER') {
+                                    rect.style.cursor = 'pointer';
+                                    rect.onclick = (e) => { e.stopPropagation(); showFillerContext(cab); };
                                 }
 
                                 if (showFrontView) {
@@ -1066,7 +1092,7 @@
                                     dimTxt.textContent = `${cab.width_mm}`;
                                     dimTxt.onclick = (e) => {
                                         e.stopPropagation();
-                                        openEditPopover(cab, e.pageX, e.pageY);
+                                        showContext(e, cab);
                                     };
 
                                     g.appendChild(dimTxt);
@@ -1080,6 +1106,145 @@
                                 }
                                 svg.appendChild(g);
                             });
+
+                            // Draw EMPTY cabinets (gaps) as clickable hatched zones
+                            segEmpties.forEach(cab => {
+                                const w = cab.width_mm * currentScale;
+                                const h = cab.height_mm * currentScale;
+                                const x = cab.start_mm * currentScale;
+                                let y;
+                                if (cab.kind === 'EMPTY_BASE') {
+                                    y = floorY - (legH_mm * currentScale) - h;
+                                } else {
+                                    const topY = floorY - ((legH_mm + project.base_height + 40 + (project.gap_height || 600) + project.wall_height) * currentScale);
+                                    y = topY;
+                                }
+                                const gGap = document.createElementNS(svgNS, "g");
+                                gGap.style.cursor = 'pointer';
+
+                                // Dashed border rect
+                                const gapRect = createSVGElem("rect", {
+                                    x, y, width: w, height: h, rx: 4,
+                                    fill: "rgba(148,163,184,0.08)",
+                                    stroke: "#94a3b8",
+                                    "stroke-width": 1.5,
+                                    "stroke-dasharray": "6,4",
+                                    "pointer-events": "all"
+                                });
+                                gGap.appendChild(gapRect);
+
+                                // Hatch lines
+                                const hatchStep = 12;
+                                for (let hx = x; hx < x + w; hx += hatchStep) {
+                                    gGap.appendChild(createSVGElem("line", {
+                                        x1: hx, y1: y,
+                                        x2: hx, y2: y + h,
+                                        stroke: "rgba(148,163,184,0.18)",
+                                        "stroke-width": 1, "pointer-events": "none"
+                                    }));
+                                }
+
+                                // Width label
+                                if (w > 24) {
+                                    const lbl = createSVGElem("text", {
+                                        x: x + w / 2, y: y + h / 2 - 6,
+                                        "text-anchor": "middle",
+                                        "font-size": "11px",
+                                        fill: "#94a3b8",
+                                        "pointer-events": "none",
+                                        "font-family": "Inter,sans-serif"
+                                    });
+                                    lbl.textContent = cab.width_mm + ' mm';
+                                    gGap.appendChild(lbl);
+
+                                    // "+" icon
+                                    const plus = createSVGElem("text", {
+                                        x: x + w / 2, y: y + h / 2 + 10,
+                                        "text-anchor": "middle",
+                                        "font-size": "18px",
+                                        fill: "#94a3b8",
+                                        "pointer-events": "none",
+                                        "font-family": "Inter,sans-serif"
+                                    });
+                                    plus.textContent = '+';
+                                    gGap.appendChild(plus);
+                                }
+
+                                gGap.onclick = (e) => { e.stopPropagation(); showGapContext(cab); };
+
+                                // Dim label below/above gap
+                                if (showDimensions) {
+                                    const gapDimY = cab.kind === 'EMPTY_WALL' ? y - 10 : y + h + 15;
+                                    const gapDimLine = cab.kind === 'EMPTY_WALL' ? y - 2 : y + h + 2;
+                                    const gapDimTxt = createSVGElem("text", {
+                                        x: x + w / 2, y: gapDimY,
+                                        "text-anchor": "middle",
+                                        "font-size": "13px",
+                                        fill: "#94a3b8",
+                                        "font-style": "italic",
+                                        "pointer-events": "none",
+                                        "font-family": "Inter,sans-serif"
+                                    });
+                                    gapDimTxt.textContent = cab.width_mm + '';
+                                    gGap.appendChild(gapDimTxt);
+                                    gGap.appendChild(createSVGElem("line", {
+                                        x1: x, y1: gapDimLine, x2: x + w, y2: gapDimLine,
+                                        stroke: "#94a3b8", "stroke-width": 1, "stroke-dasharray": "3,3",
+                                        "pointer-events": "none"
+                                    }));
+                                }
+
+                                svg.appendChild(gGap);
+                            });
+
+                            // --- Segment Total Width Dimension (always shown, updates on cab add/remove) ---
+                            const allSegCabsSorted = cabinets
+                                .filter(c => c.segment === seg.id)
+                                .sort((a, b) => a.start_mm - b.start_mm);
+                            const totalUsed = allSegCabsSorted.length > 0
+                                ? allSegCabsSorted[allSegCabsSorted.length - 1].start_mm
+                                + allSegCabsSorted[allSegCabsSorted.length - 1].width_mm
+                                : 0;
+                            const segTotalW = seg.length_mm * currentScale;
+                            const totalDimY = floorY + 38;
+
+                            // Segment full width ruler
+                            svg.appendChild(createSVGElem("line", {
+                                x1: 0, y1: totalDimY, x2: segTotalW, y2: totalDimY,
+                                stroke: "#475569", "stroke-width": 1.5, "pointer-events": "none"
+                            }));
+                            // Left tick
+                            svg.appendChild(createSVGElem("line", {
+                                x1: 0, y1: totalDimY - 6, x2: 0, y2: totalDimY + 6,
+                                stroke: "#475569", "stroke-width": 1.5, "pointer-events": "none"
+                            }));
+                            // Right tick
+                            svg.appendChild(createSVGElem("line", {
+                                x1: segTotalW, y1: totalDimY - 6, x2: segTotalW, y2: totalDimY + 6,
+                                stroke: "#475569", "stroke-width": 1.5, "pointer-events": "none"
+                            }));
+                            // Total label
+                            const totalLbl = createSVGElem("text", {
+                                x: segTotalW / 2, y: totalDimY + 18,
+                                "text-anchor": "middle",
+                                "font-size": "14px",
+                                fill: "#475569",
+                                "font-weight": "600",
+                                "pointer-events": "none",
+                                "font-family": "Inter,sans-serif"
+                            });
+                            totalLbl.textContent = `${seg.length_mm} mm`;
+                            svg.appendChild(totalLbl);
+
+                            // Used vs empty indicator
+                            if (totalUsed > 0 && totalUsed !== seg.length_mm) {
+                                const usedW = totalUsed * currentScale;
+                                svg.appendChild(createSVGElem("line", {
+                                    x1: 0, y1: totalDimY - 10, x2: usedW, y2: totalDimY - 10,
+                                    stroke: "var(--success, #10b981)", "stroke-width": 3,
+                                    "stroke-linecap": "round", "pointer-events": "none"
+                                }));
+                            }
 
                             // Draw Countertop Line across BASE cabinets (40mm thickness)
                             const ctHeight = 40 * currentScale;
@@ -1281,6 +1446,151 @@
                     }
                 }
             });
+
+            // Kör Parça (FILLER) Context Paneli
+            function showFillerContext(filler) {
+                showToolSidebar();
+                document.getElementById('edit-popover').style.display = 'none';
+                document.getElementById('appl-edit-popover').style.display = 'none';
+                document.getElementById('cab-ctx').style.display = 'none';
+                document.getElementById('gap-ctx').style.display = 'none';
+                document.getElementById('filler-ctx').style.display = 'block';
+
+                const kindLabel = filler.kind === 'FILLER' ? (filler.height_mm >= (project.wall_height || 720) ? 'Üst Kör Parça' : 'Alt Kör Parça') : 'Kör Parça';
+                document.getElementById('filler-info-text').textContent =
+                    `${filler.code ? '[' + filler.code + '] ' : ''}${kindLabel} · ${filler.width_mm} mm`;
+
+                // Find neighbors among same segment (all kinds except EMPTY)
+                const segAllCabs = cabinets.filter(c => c.segment === filler.segment);
+                const leftNeighbor = segAllCabs.find(c =>
+                    c.id !== filler.id &&
+                    Math.abs((c.start_mm + c.width_mm) - filler.start_mm) < 5
+                );
+                const rightNeighbor = segAllCabs.find(c =>
+                    c.id !== filler.id &&
+                    Math.abs(c.start_mm - (filler.start_mm + filler.width_mm)) < 5
+                );
+
+                const btnLeft = document.getElementById('btn-filler-merge-left');
+                const btnRight = document.getElementById('btn-filler-merge-right');
+                const btnDel = document.getElementById('btn-filler-delete');
+
+                btnLeft.disabled = !leftNeighbor;
+                btnLeft.style.opacity = leftNeighbor ? '1' : '0.4';
+                btnLeft.onclick = leftNeighbor ? async () => {
+                    await saveHistoryState();
+                    const newWidth = leftNeighbor.width_mm + filler.width_mm;
+                    await apiRequest(`/api/cabinets/${leftNeighbor.id}/`, 'PATCH', {
+                        width_mm: newWidth, is_locked: true
+                    });
+                    await apiRequest(`/api/cabinets/${filler.id}/`, 'DELETE');
+                    await reloadData();
+                    hideToolSidebar();
+                    showAlert(`Sol dolap ${newWidth}mm oldu.`, true);
+                } : null;
+
+                btnRight.disabled = !rightNeighbor;
+                btnRight.style.opacity = rightNeighbor ? '1' : '0.4';
+                btnRight.onclick = rightNeighbor ? async () => {
+                    await saveHistoryState();
+                    const newStart = filler.start_mm;
+                    const newWidth = rightNeighbor.width_mm + filler.width_mm;
+                    await apiRequest(`/api/cabinets/${rightNeighbor.id}/`, 'PATCH', {
+                        start_mm: newStart, width_mm: newWidth, is_locked: true
+                    });
+                    await apiRequest(`/api/cabinets/${filler.id}/`, 'DELETE');
+                    await reloadData();
+                    hideToolSidebar();
+                    showAlert(`Sağ dolap ${newWidth}mm oldu.`, true);
+                } : null;
+
+                btnDel.onclick = async () => {
+                    if (!confirm('Kör parça silinecek, komşu dolaplar değişmeyecek. Devam edilsin mi?')) return;
+                    await saveHistoryState();
+                    await apiRequest(`/api/cabinets/${filler.id}/`, 'DELETE');
+                    await reloadData();
+                    hideToolSidebar();
+                    showAlert('Kör parça kaldırıldı.', true);
+                };
+            }
+
+            // Gap (Boşluk) Context Paneli
+            function showGapContext(gap) {
+                showToolSidebar();
+                document.getElementById('edit-popover').style.display = 'none';
+                document.getElementById('appl-edit-popover').style.display = 'none';
+                document.getElementById('cab-ctx').style.display = 'none';
+                document.getElementById('gap-ctx').style.display = 'block';
+
+                const kindLabel = gap.kind === 'EMPTY_BASE' ? 'Alt Boşluk' : 'Üst Boşluk';
+                document.getElementById('gap-info-text').textContent =
+                    `${kindLabel} · ${gap.width_mm} mm`;
+
+                // Sol komşuyu bul (sağından bitişik)
+                const segCabs = cabinets.filter(c => c.segment === gap.segment && c.kind !== 'EMPTY_BASE' && c.kind !== 'EMPTY_WALL');
+                const leftNeighbor = segCabs.find(c =>
+                    Math.abs((c.start_mm + c.width_mm) - gap.start_mm) < 5
+                );
+                const rightNeighbor = segCabs.find(c =>
+                    Math.abs(c.start_mm - (gap.start_mm + gap.width_mm)) < 5
+                );
+
+                const btnLeft = document.getElementById('btn-gap-expand-left');
+                const btnRight = document.getElementById('btn-gap-expand-right');
+                const btnFill = document.getElementById('btn-gap-fill');
+                const btnKind = document.getElementById('btn-gap-fill-kind');
+
+                btnLeft.disabled = !leftNeighbor;
+                btnLeft.style.opacity = leftNeighbor ? '1' : '0.4';
+                btnLeft.onclick = leftNeighbor ? async () => {
+                    await saveHistoryState();
+                    const newWidth = leftNeighbor.width_mm + gap.width_mm;
+                    await apiRequest(`/api/cabinets/${leftNeighbor.id}/`, 'PATCH', {
+                        width_mm: newWidth, is_locked: true
+                    });
+                    await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
+                    await reloadData();
+                    hideToolSidebar();
+                    showAlert('Sol dolap genişletildi.', true);
+                } : null;
+
+                btnRight.disabled = !rightNeighbor;
+                btnRight.style.opacity = rightNeighbor ? '1' : '0.4';
+                btnRight.onclick = rightNeighbor ? async () => {
+                    await saveHistoryState();
+                    const newStart = gap.start_mm;
+                    const newWidth = rightNeighbor.width_mm + gap.width_mm;
+                    await apiRequest(`/api/cabinets/${rightNeighbor.id}/`, 'PATCH', {
+                        start_mm: newStart, width_mm: newWidth, is_locked: true
+                    });
+                    await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
+                    await reloadData();
+                    hideToolSidebar();
+                    showAlert('Sağ dolap genişletildi.', true);
+                } : null;
+
+                btnFill.onclick = async () => {
+                    await saveHistoryState();
+                    const realKind = gap.kind === 'EMPTY_WALL' ? 'WALL' : 'BASE';
+                    await apiRequest(`/api/cabinets/${gap.id}/`, 'PATCH', {
+                        kind: realKind, is_locked: false, label: ''
+                    });
+                    await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
+                    await reloadData();
+                    hideToolSidebar();
+                    showAlert('Boşluğa yeni dolap eklendi.', true);
+                };
+
+                btnKind.onclick = async () => {
+                    // Toggle between EMPTY_BASE and EMPTY_WALL
+                    const newKind = gap.kind === 'EMPTY_BASE' ? 'EMPTY_WALL' : 'EMPTY_BASE';
+                    await apiRequest(`/api/cabinets/${gap.id}/`, 'PATCH', { kind: newKind });
+                    await reloadData();
+                    // Reopen with updated gap
+                    const updatedGap = cabinets.find(c => c.id === gap.id);
+                    if (updatedGap) showGapContext(updatedGap);
+                };
+            }
 
             // Context Menu for Drawer
             function showContext(e, cab) {
@@ -2282,10 +2592,7 @@
                         await reloadData();
 
                         if (project) {
-                            const ws =
-                                document.getElementById('panel-workspace');
-                            ws.style.opacity = '1';
-                            ws.style.pointerEvents = 'auto';
+                            activateWorkspacePanels();
                             document.getElementById('toolbar').style.display
                                 = 'flex';
                             document.getElementById('current-project-title').textContent
