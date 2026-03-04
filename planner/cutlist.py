@@ -123,41 +123,80 @@ def generate_cutlist(project):
             part_id += 1
         else:
             # Check if this is an appliance housing by label
+            is_4_door = cab.door_style == '4' or (cab.door_style == 'AUTO' and cab.width_mm >= 1200)
+            is_2_door = cab.door_style == '2' or (cab.door_style == 'AUTO' and cab.width_mm >= 600 and cab.width_mm < 1200)
+
             if "Evye" in cab_name:
                 # Evye (Sink): Doors exist, but no top and no shelves.
+                qty = 4 if is_4_door else (2 if is_2_door else 1)
+                w_div = 4 if is_4_door else (2 if is_2_door else 1)
+                
                 parts.append({
                     'id': part_id, 'cabinet': cab_name, 'part_name': 'Kapak (Evye)',
-                    'qty': 2 if cab.width_mm >= 600 else 1,
+                    'qty': qty,
                     'length': cab.height_mm - 4 if cab.kind == 'BASE' else cab.height_mm,
-                    'width': (cab.width_mm / 2 - 4) if cab.width_mm >= 600 else (cab.width_mm - 4),
+                    'width': (cab.width_mm / w_div) - 4,
                     'thickness': t, 'material': 'MDF 18mm'
                 })
                 part_id += 1
             elif "Fırın" in cab_name or "Bulaşık" in cab_name or "Buzdolabı" in cab_name:
                 # OVEN / DW / FRIDGE: Generally these are just housing (sides, maybe bottom). No doors, no shelves.
-                # Fridge is tall, might have a small cabinet on top, but we'll keep it simple: just the frame.
                 pass 
             else:
-                # Standard Door
-                parts.append({
-                    'id': part_id,
-                    'cabinet': cab_name,
-                    'part_name': 'Kapak',
-                    'qty': 2 if cab.width_mm >= 600 else 1,
-                    'length': cab.height_mm - 4 if cab.kind == 'BASE' else cab.height_mm,
-                    'width': (cab.width_mm / 2 - 4) if cab.width_mm >= 600 else (cab.width_mm - 4),
-                    'thickness': t,
-                    'material': 'MDF 18mm'
-                })
-                part_id += 1
+                # Standard Door & Shelves
                 
-                # Shelf (depth - 20)
+                # Kapak Hesabı
+                qty = 4 if is_4_door else (2 if is_2_door else 1)
+                w_div = 4 if is_4_door else (2 if is_2_door else 1)
+                if qty > 0:
+                    parts.append({
+                        'id': part_id,
+                        'cabinet': cab_name,
+                        'part_name': 'Kapak',
+                        'qty': qty,
+                        'length': cab.height_mm - 4 if cab.kind == 'BASE' else cab.height_mm,
+                        'width': (cab.width_mm / w_div) - 4,
+                        'thickness': t,
+                        'material': 'MDF 18mm'
+                    })
+                    part_id += 1
+                
+                # Dikme ve Raf Hesabı
+                p_style = getattr(cab, 'partition_style', 'AUTO')
+                num_dividers = 0
+                if p_style == '4':
+                    num_dividers = 3
+                elif p_style == '2':
+                    num_dividers = 1
+                elif p_style == '1':
+                    num_dividers = 0
+                else: # AUTO
+                    num_dividers = 1 if is_4_door else 0
+                
+                if num_dividers > 0:
+                    parts.append({
+                        'id': part_id,
+                        'cabinet': cab_name,
+                        'part_name': 'Orta Dikme',
+                        'qty': num_dividers,
+                        'length': cab.height_mm - 2*t,
+                        'width': cab.depth_mm - 20,
+                        'thickness': t,
+                        'material': 'MDF 18mm'
+                    })
+                    part_id += 1
+                
+                # Raflar
+                num_shelf_compartments = num_dividers + 1
+                shelf_qty = 2 if cab.kind == 'WALL' and cab.height_mm > 700 else 1
+                total_shelf_qty = shelf_qty * num_shelf_compartments
+                
                 parts.append({
                     'id': part_id,
                     'cabinet': cab_name,
                     'part_name': 'Raf',
-                    'qty': 1,
-                    'length': inner_width,
+                    'qty': total_shelf_qty,
+                    'length': (inner_width - (num_dividers * t)) / num_shelf_compartments,
                     'width': cab.depth_mm - 20,
                     'thickness': t,
                     'material': 'MDF 18mm'

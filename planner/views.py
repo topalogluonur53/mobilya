@@ -82,6 +82,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
                     type=app_data['type'],
                     start_mm=app_data['start_mm'],
                     width_mm=app_data['width_mm'],
+                    height_mm=app_data.get('height_mm'),
                     note=app_data.get('note', '')
                 )
         
@@ -97,7 +98,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
                     height_mm=cab_data['height_mm'],
                     label=cab_data.get('label', ''),
                     has_drawers=cab_data.get('has_drawers', False),
-                    is_locked=cab_data.get('is_locked', False)
+                    is_locked=cab_data.get('is_locked', False),
+                    door_style=cab_data.get('door_style', 'AUTO'),
+                    partition_style=cab_data.get('partition_style', 'AUTO')
                 )
                 
         return Response({"status": "Durum başarıyla geri yüklendi."})
@@ -117,22 +120,29 @@ class ApplianceViewSet(viewsets.ModelViewSet):
         project = serializer.validated_data.get('project')
         
         if start_mm == -1 and segment and project:
-            existing_appliances = Appliance.objects.filter(
-                project=project, segment=segment
-            ).exclude(type='HOOD')
-            existing_cabinets = Cabinet.objects.filter(
-                project=project, segment=segment, kind__in=['BASE', 'TALL']
-            )
-            
+            app_type = serializer.validated_data.get('type')
+            is_wall = (app_type in ['HOOD', 'FRIDGE'])
+            is_base = (app_type != 'HOOD')
+
             max_end = 0
-            for app in existing_appliances:
-                end_pos = app.start_mm + app.width_mm
-                if end_pos > max_end:
-                    max_end = end_pos
-            for cab in existing_cabinets:
-                end_pos = cab.start_mm + cab.width_mm
-                if end_pos > max_end:
-                    max_end = end_pos
+            
+            # Find obstacles for the level(s) this appliance occupies
+            
+            # 1. Check other appliances
+            other_apps = Appliance.objects.filter(project=project, segment=segment)
+            for a in other_apps:
+                a_is_wall = (a.type in ['HOOD', 'FRIDGE'])
+                a_is_base = (a.type != 'HOOD')
+                if (is_wall and a_is_wall) or (is_base and a_is_base):
+                    max_end = max(max_end, a.start_mm + a.width_mm)
+
+            # 2. Check locked cabinets
+            other_cabs = Cabinet.objects.filter(project=project, segment=segment, is_locked=True)
+            for c in other_cabs:
+                c_is_wall = (c.kind in ['WALL', 'EMPTY_WALL', 'TALL'])
+                c_is_base = (c.kind in ['BASE', 'TALL', 'EMPTY_BASE', 'APPL'])
+                if (is_wall and c_is_wall) or (is_base and c_is_base):
+                    max_end = max(max_end, c.start_mm + c.width_mm)
             
             serializer.validated_data['start_mm'] = max_end
 
@@ -199,33 +209,88 @@ class CabinetViewSet(viewsets.ModelViewSet):
 
         if start_mm == -1 and segment and project:
             max_end = 0
-            if kind in ['BASE', 'TALL']:
-                existing_appliances = Appliance.objects.filter(
-                    project=project, segment=segment
-                ).exclude(type='HOOD')
-                existing_cabinets = Cabinet.objects.filter(
-                    project=project, segment=segment, kind__in=['BASE', 'TALL']
-                )
-                for app in existing_appliances:
-                    end_pos = app.start_mm + app.width_mm
-                    if end_pos > max_end: max_end = end_pos
-                for cab in existing_cabinets:
-                    end_pos = cab.start_mm + cab.width_mm
-                    if end_pos > max_end: max_end = end_pos
-            elif kind == 'WALL':
-                existing_hoods = Appliance.objects.filter(
-                    project=project, segment=segment, type='HOOD'
-                )
-                existing_cabinets = Cabinet.objects.filter(
-                    project=project, segment=segment, kind='WALL'
-                )
-                for app in existing_hoods:
-                    end_pos = app.start_mm + app.width_mm
-                    if end_pos > max_end: max_end = end_pos
-                for cab in existing_cabinets:
-                    end_pos = cab.start_mm + cab.width_mm
-                    if end_pos > max_end: max_end = end_pos
+            is_wall = (kind == 'WALL')
+            is_base = (kind in ['BASE', 'TALL'])
+
+            # 1. Check appliances
+            other_apps = Appliance.objects.filter(project=project, segment=segment)
+            for a in other_apps:
+                a_is_wall = (a.type in ['HOOD', 'FRIDGE'])
+                a_is_base = (a.type != 'HOOD')
+                if (is_wall and a_is_wall) or (is_base and a_is_base):
+                    max_end = max(max_end, a.start_mm + a.width_mm)
+
+            # 2. Check cabinets
+            other_cabs = Cabinet.objects.filter(project=project, segment=segment)
+            for c in other_cabs:
+                c_is_wall = (c.kind in ['WALL', 'EMPTY_WALL', 'TALL'])
+                c_is_base = (c.kind in ['BASE', 'TALL', 'EMPTY_BASE', 'APPL'])
+                if (is_wall and c_is_wall) or (is_base and c_is_base):
+                    max_end = max(max_end, c.start_mm + c.width_mm)
             
             serializer.validated_data['start_mm'] = max_end
 
         serializer.save()
+
+    @action(detail=True, methods=['post'])
+    def split(self, request, pk=None):
+        cab = self.get_object()
+        if cab.width_mm <= 100:
+            return Response({'error': 'Dolap daha fazla bölünemez'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        half_width = cab.width_mm // 2
+        new_width = cab.width_mm - half_width
+        
+        # update current
+        cab.width_mm = half_width
+        cab.is_locked = True
+        cab.save()
+        
+        # create new
+        Cabinet.objects.create(
+            project=cab.project,
+            segment=cab.segment,
+            kind=cab.kind,
+            start_mm=cab.start_mm + half_width,
+            width_mm=new_width,
+            depth_mm=cab.depth_mm,
+            height_mm=cab.height_mm,
+            label=cab.label,
+            has_drawers=cab.has_drawers,
+            is_locked=True,
+            door_style=cab.door_style,
+            partition_style=cab.partition_style
+        )
+        return Response({'status': 'ok'})
+
+    @action(detail=True, methods=['post'])
+    def merge_next(self, request, pk=None):
+        cab = self.get_object()
+        next_cab = Cabinet.objects.filter(
+            project=cab.project, segment=cab.segment, kind=cab.kind,
+            start_mm=cab.start_mm + cab.width_mm
+        ).first()
+        
+        if next_cab:
+            cab.width_mm += next_cab.width_mm
+            cab.is_locked = True
+            cab.save()
+            next_cab.delete()
+            return Response({'status': 'ok'})
+        return Response({'error': 'Sağda birleştirilecek dolap yok.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def merge_prev(self, request, pk=None):
+        cab = self.get_object()
+        prev_cab = Cabinet.objects.filter(
+            project=cab.project, segment=cab.segment, kind=cab.kind,
+            start_mm__lt=cab.start_mm
+        ).order_by('-start_mm').first()
+        
+        if prev_cab and prev_cab.start_mm + prev_cab.width_mm == cab.start_mm:
+            prev_cab.width_mm += cab.width_mm
+            prev_cab.is_locked = True
+            prev_cab.save()
+            cab.delete()
+            return Response({'status': 'ok'})
+        return Response({'error': 'Solda birleştirilecek dolap yok.'}, status=status.HTTP_400_BAD_REQUEST)

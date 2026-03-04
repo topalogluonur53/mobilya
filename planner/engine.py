@@ -2,28 +2,72 @@ from .models import Project, Segment, Appliance, Cabinet
 
 def solve_gap(gap_width, module_list):
     """
-    Kalan boşluğu eşit parçalara böler.
-    Kullanıcının isteği: Eşit bölme mantığına devam et, sadece parçalar 30cm'e yakın olmak zorunda değil, alabildiğine geniş (max ~900mm) olsun, ama 30cm'den küçük parça çıkmasın.
+    Kalan boşluğu mevcut modül ölçülerine (module_list) göre en az boşluk (filler)
+    bırakacak ve en ideal maliyeti (cost = filler*1000 + count*10) oluşturacak şekilde
+    DP (dinamik programlama) ile hesaplar.
     """
     if gap_width < 300:
-        # Eğer boşluk 30 cm'den küçükse, bu mecburen kör nokta (filler) olur.
         return gap_width, []
         
-    MAX_WIDTH = 900
-    
-    # En az kaç modüle bölersek her biri MAX_WIDTH sınırını aşmaz?
-    # (Tavandan yuvarlama mantığı: Ceil(gap_width / MAX_WIDTH))
-    num_modules = (gap_width + MAX_WIDTH - 1) // MAX_WIDTH
-    
-    base_module_width = gap_width // num_modules
-    remainder = gap_width % num_modules
-    
-    mods = []
-    for i in range(num_modules):
-        w = base_module_width + (1 if i < remainder else 0)
-        mods.append(w)
+    if not module_list:
+        module_list = [900, 800, 600, 500, 450, 400, 300]
         
-    return 0, mods
+    dp = [(float('inf'), 0)] * (gap_width + 1)
+    dp[0] = (0, 0)
+    choice = [-1] * (gap_width + 1)
+    
+    for w in range(1, gap_width + 1):
+        best_cost = float('inf')
+        best_num = float('inf')
+        best_choice = -1
+        
+        for mod in module_list:
+            if w >= mod:
+                prev_cost, prev_num = dp[w - mod]
+                if prev_cost != float('inf'):
+                    current_cost = prev_cost + 10 # 10 cost per module
+                    
+                    if mod < 400:
+                        current_cost += 5 # Penaltize small modules
+                        
+                    if current_cost < best_cost:
+                        best_cost = current_cost
+                        best_num = prev_num + 1
+                        best_choice = mod
+                        
+        dp[w] = (best_cost, best_num)
+        choice[w] = best_choice
+        
+    best_total_cost = float('inf')
+    best_width = 0
+    
+    for w in range(gap_width + 1):
+        if dp[w][0] != float('inf'):
+            filler = gap_width - w
+            count = dp[w][1]
+            
+            # Formulate the cost
+            cost = filler * 1000 + dp[w][0]
+            
+            # Avoid fillers smaller than 30mm physically
+            if 0 < filler < 30:
+                cost += 50000
+                
+            if cost < best_total_cost:
+                best_total_cost = cost
+                best_width = w
+                
+    mods = []
+    curr = best_width
+    while curr > 0:
+        c = choice[curr]
+        if c == -1:
+            break
+        mods.append(c)
+        curr -= c
+        
+    filler = gap_width - sum(mods)
+    return filler, mods
 
 def generate_cabinets(project):
     try:
@@ -49,8 +93,8 @@ def generate_cabinets(project):
         base_appliances = [a for a in appliances if a.type != 'HOOD']
         wall_appliances = [a for a in appliances if a.type in ['HOOD', 'FRIDGE']]
         
-        base_locked = [c for c in locked_cabs if c.kind in ['BASE', 'TALL']]
-        wall_locked = [c for c in locked_cabs if c.kind == 'WALL']
+        base_locked = [c for c in locked_cabs if c.kind in ['BASE', 'TALL', 'EMPTY_BASE']]
+        wall_locked = [c for c in locked_cabs if c.kind in ['WALL', 'EMPTY_WALL', 'TALL']]
 
         class Obstacle:
             def __init__(self, start, width, obj_type, obj_itself=None):
@@ -80,15 +124,18 @@ def generate_cabinets(project):
             for i in range(len(obs_list)):
                 o = obs_list[i]
                 if o.start_mm < 0 or o.end_mm > segment.length_mm:
-                    return False # Out of bounds
+                    return False, f"[{o.type}] modülü {segment.name} duvarında sınır dışına taşıyor!"
                 if i < len(obs_list) - 1:
                     next_o = obs_list[i+1]
                     if o.end_mm > next_o.start_mm:
-                        return False # Overlap
-            return True
+                        return False, f"[{o.type}] ile [{next_o.type}] üst üste çakışıyor!"
+            return True, ""
         
-        if not check_bounds_and_overlap(base_obstacles) or not check_bounds_and_overlap(wall_obstacles):
-            raise ValueError(f"Çakışma veya sığmama tespit edildi! Lütfen kilitli dolap/cihaz ölçülerini kontrol edin. Duvar: {segment.name}")
+        valid_base, err_base = check_bounds_and_overlap(base_obstacles)
+        valid_wall, err_wall = check_bounds_and_overlap(wall_obstacles)
+        
+        if not valid_base: raise ValueError(f"Hata: {err_base}")
+        if not valid_wall: raise ValueError(f"Hata: {err_wall}")
         
         # 1. BASE LEVEL
         current_x = 0
@@ -105,9 +152,12 @@ def generate_cabinets(project):
                 elif a.type == 'OVEN':
                     Cabinet.objects.create(project=project, segment=segment, kind='BASE', start_mm=a.start_mm, width_mm=a.width_mm, depth_mm=project.base_depth, height_mm=project.base_height, label=f"Fırın Modülü {a.width_mm}", is_locked=False)
                 elif a.type == 'DW':
-                    Cabinet.objects.create(project=project, segment=segment, kind='BASE', start_mm=a.start_mm, width_mm=a.width_mm, depth_mm=project.base_depth, height_mm=project.base_height, label=f"Bulaşık Mak. Modülü {a.width_mm}", is_locked=False)
+                    Cabinet.objects.create(project=project, segment=segment, kind='APPL', start_mm=a.start_mm, width_mm=a.width_mm, depth_mm=project.base_depth, height_mm=project.base_height, label=f"Bulaşık Mak. Boşluğu {a.width_mm}", is_locked=False)
                 elif a.type == 'FRIDGE':
                     Cabinet.objects.create(project=project, segment=segment, kind='BASE', start_mm=a.start_mm, width_mm=a.width_mm, depth_mm=project.base_depth, height_mm=2000, label=f"Buzdolabı Modülü {a.width_mm}", is_locked=False)
+                elif a.type == 'CORNER':
+                    # L mutfak köşe
+                    Cabinet.objects.create(project=project, segment=segment, kind='BASE', start_mm=a.start_mm, width_mm=a.width_mm, depth_mm=project.base_depth, height_mm=project.base_height, label=f"Kör Köşe Modülü", is_locked=False)
                 else:
                     Cabinet.objects.create(project=project, segment=segment, kind='APPL', start_mm=a.start_mm, width_mm=a.width_mm, depth_mm=project.base_depth, height_mm=project.base_height, label=f"{a.type} Boşluk", is_locked=False)
             
@@ -124,6 +174,21 @@ def generate_cabinets(project):
             gap = obs.start_mm - current_x
             if gap > 0:
                 fill_wall_gap(project, segment, current_x, gap, module_list)
+            
+            # create cabinet above APPL (Hood / Fridge)
+            if hasattr(obs.obj, 'type'):
+                top_y = 100 + project.base_height + 40 + getattr(project, 'gap_height', 600) + project.wall_height
+                if obs.type == 'HOOD':
+                    hood_h = obs.obj.height_mm if obs.obj.height_mm else 300
+                    h = project.wall_height - hood_h
+                    if h > 0:
+                        Cabinet.objects.create(project=project, segment=segment, kind='WALL', start_mm=obs.start_mm, width_mm=obs.width_mm, depth_mm=project.wall_depth, height_mm=h, label=f"Davlumbaz Üstü {obs.width_mm}", is_locked=False)
+                elif obs.type == 'FRIDGE':
+                    fridge_h = obs.obj.height_mm if obs.obj.height_mm else 2000
+                    h = top_y - fridge_h
+                    if h > 0:
+                        Cabinet.objects.create(project=project, segment=segment, kind='WALL', start_mm=obs.start_mm, width_mm=obs.width_mm, depth_mm=project.wall_depth, height_mm=h, label=f"Buzdolabı Üstü {obs.width_mm}", is_locked=False)
+            
             current_x = obs.end_mm
             
         last_gap = segment.length_mm - current_x

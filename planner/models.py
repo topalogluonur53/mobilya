@@ -44,6 +44,7 @@ class Appliance(models.Model):
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     start_mm = models.IntegerField()
     width_mm = models.IntegerField()
+    height_mm = models.IntegerField(null=True, blank=True)
     note = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -55,7 +56,9 @@ class Cabinet(models.Model):
         ('WALL', 'Üst Dolap'),
         ('TALL', 'Boy Dolap'),
         ('FILLER', 'Kör Parça'),
-        ('APPL', 'Beyaz Eşya')
+        ('APPL', 'Beyaz Eşya'),
+        ('EMPTY_BASE', 'Boşluk (Alt)'),
+        ('EMPTY_WALL', 'Boşluk (Üst)')
     ]
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='cabinets')
     segment = models.ForeignKey(Segment, on_delete=models.CASCADE, related_name='cabinets')
@@ -66,6 +69,18 @@ class Cabinet(models.Model):
     height_mm = models.IntegerField()
     label = models.CharField(max_length=100, blank=True)
     code = models.CharField(max_length=20, blank=True)
+    door_style = models.CharField(max_length=10, default='AUTO', choices=[
+        ('AUTO', 'Otomatik'),
+        ('1', '1 Kapaklı'),
+        ('2', '2 Kapaklı'),
+        ('4', '4 Kapaklı')
+    ])
+    partition_style = models.CharField(max_length=10, default='AUTO', choices=[
+        ('AUTO', 'Otomatik'),
+        ('1', 'Bölmesiz'),
+        ('2', '2 Bölmeli'),
+        ('4', '4 Bölmeli')
+    ])
     has_drawers = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
 

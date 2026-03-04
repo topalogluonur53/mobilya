@@ -1,0 +1,251 @@
+1220:                             }
+1221:                         } else if (cab.kind === 'FILLER') {
+1222:                             rect.style.fill = "transparent";
+1223:                             rect.style.stroke = "transparent";
+1224:                         }
+1225:                     } // end else (MDF skeleton view)
+1226:                 } // end else (MDF skeleton view)
+1227: 
+1228:                     if (cab.kind === 'APPL') {
+1229:                     // Invisible placeholder for appl
+1230:                 } else if (w > 20) {
+1231:                     const txt = createSVGElem("text", { x: x + w / 2, y: y + h / 2, class: "text-label", "pointer-events": "none" });
+1232:                     let kindText = cab.has_drawers ? 'ÇKM' : (cab.kind === 'BASE' ? 'ALT' : cab.kind === 'WALL' ? 'ÜST' : cab.kind === 'TALL' ? 'BOY' : cab.kind === 'FILLER' ? 'KÖR' : cab.kind);
+1233:                     txt.textContent = (cab.code ? "[" + cab.code + "] " : "") + kindText;
+1234:                     g.appendChild(txt);
+1235: 
+1236:                     if (showDimensions) {
+1237:                         const dimY = cab.kind === 'WALL' ? y - 10 : y + h + 15;
+1238:                         const isLocked = cab.is_locked ? "bold" : "normal";
+1239:                         const txtDeco = cab.is_locked ? "underline" : "none";
+1240:                         const dimTxt = createSVGElem("text", {
+1241:                             x: x + w / 2, y: dimY, class: "text-label interact-dim",
+1242:                             "font-size": "13px", fill: "var(--primary)",
+1243:                             "font-weight": isLocked,
+1244:                             "text-decoration": txtDeco,
+1245:                             "cursor": "pointer"
+1246:                         });
+1247:                         dimTxt.textContent = `${cab.width_mm}`;
+1248:                         dimTxt.onclick = (e) => {
+1249:                             e.stopPropagation();
+1250:                             openEditPopover(cab, e.pageX, e.pageY);
+1251:                         };
+1252: 
+1253:                         g.appendChild(dimTxt);
+1254: 
+1255:                         // Ölçü çizgisi
+1256:                         const lineY = cab.kind === 'WALL' ? y - 2 : y + h + 2;
+1257:                         g.appendChild(createSVGElem("line", { x1: x, y1: lineY, x2: x + w, y2: lineY, stroke: "var(--primary)", "stroke-width": 1, "stroke-dasharray": "2", "pointer-events": "none" }));
+1258:                     }
+1259:                     svg.appendChild(g);
+1260:                 });
+1261:             // Draw Countertop Line across BASE cabinets (40mm thickness)
+1262:             const grad = document.createElementNS(svgNS, "linearGradient");
+1263:             grad.setAttribute("id", id);
+1264:             grad.setAttribute("x1", "0%"); grad.setAttribute("x2", vertical ? "0%" : "100%");
+1265:             grad.setAttribute("y1", "0%"); grad.setAttribute("y2", vertical ? "100%" : "0%");
+1266:             const s1 = document.createElementNS(svgNS, "stop");
+1267:             s1.setAttribute("offset", "0%"); s1.setAttribute("stop-color", c1);
+1268:             const s2 = document.createElementNS(svgNS, "stop");
+1269:             s2.setAttribute("offset", "100%"); s2.setAttribute("stop-color", c2);
+1270:             grad.appendChild(s1); grad.appendChild(s2);
+1271:             defs.appendChild(grad);
+1272:             g.appendChild(defs);
+1273:         }
+1274: 
+1275:         // Stainless steel
+1276:         mkGrad(`${uid}_ss`, "#e8eaed", "#b0b6bd");
+1277:         // Dark panel
+1278:         mkGrad(`${uid}_dp`, "#3b4858", "#1e2a38", true);
+1279:         // Glass
+1280:         mkGrad(`${uid}_gl`, "#0d1b2a", "#1a2f45", true);
+1281:         // Light panel
+1282:         mkGrad(`${uid}_lp`, "#f0f2f5", "#d8dde5", true);
+1283: 
+1284:         const R = (px, py, pw, ph, fill, rx = 4, stroke = "#8a9ab0", sw = 1) => {
+1285:             const el = createSVGElem("rect", { x: px, y: py, width: pw, height: ph, fill, stroke, "stroke-width": sw, rx, "pointer-events": "none" });
+1286:             g.appendChild(el);
+1287:         };
+1288:         const L = (x1, y1, x2, y2, stroke = "#6b7a8d", sw = 2) => {
+1289:             const el = createSVGElem("line", { x1, y1, x2, y2, stroke, "stroke-width": sw, "stroke-linecap": "round", "pointer-events": "none" });
+1290:             g.appendChild(el);
+1291:         };
+1292:         const C = (cx, cy, r, fill, stroke = "#6b7a8d", sw = 1) => {
+1293:             const el = createSVGElem("circle", { cx, cy, r, fill, stroke, "stroke-width": sw, "pointer-events": "none" });
+1294:             g.appendChild(el);
+1295:         };
+1296:         const T = (tx, ty, txt, fs = 12, fill = "#475569", anchor = "middle") => {
+1297:             const el = createSVGElem("text", { x: tx, y: ty, "text-anchor": anchor, fill, "font-size": `${fs}px`, "font-family": "Inter,sans-serif", "font-weight": "600", "pointer-events": "none" });
+1298:             el.textContent = txt;
+1299:             g.appendChild(el);
+1300:         };
+1301: 
+1302:         if (type === 'FRIDGE') {
+1303:             // Body
+1304:             R(x, y, w, h, `url(#${uid}_ss)`, 6, "#8a9ab0", 1.5);
+1305:             // Freezer compartment top
+1306:             const fzH = h * 0.38;
+1307:             R(x + 4, y + 4, w - 8, fzH - 4, `url(#${uid}_lp)`, 4, "#8a9ab0", 1);
+1308:             // Fridge compartment bottom
+1309:             R(x + 4, y + fzH + 2, w - 8, h - fzH - 6, `url(#${uid}_lp)`, 4, "#8a9ab0", 1);
+1310:             // Center divider
+1311:             L(x + 4, y + fzH, x + w - 4, y + fzH, "#8a9ab0", 2);
+1312:             // Handles
+1313:             R(x + w - 16, y + fzH * 0.2, 6, fzH * 0.6, "#6b7a8d", 3, "#4a5568", 1);
+1314:             R(x + w - 16, y + fzH + h * 0.1, 6, (h - fzH) * 0.5, "#6b7a8d", 3, "#4a5568", 1);
+1315:             // Logo area
+1316:             T(x + w / 2, y + fzH * 0.5 + 6, "❄", 18, "#64a0c8", "middle");
+1317:             T(x + w / 2, y + fzH + (h - fzH) * 0.5 + 6, "FRIDGE", 9, "#7a8a9a", "middle");
+1318: 
+1319:         } else if (type === 'OVEN') {
+1320:             // Body
+1321:             R(x, y, w, h, `url(#${uid}_ss)`, 4, "#8a9ab0", 1.5);
+1322:             // Control strip
+1323:             const cpH = h * 0.18;
+1324:             R(x + 2, y + 2, w - 4, cpH, `url(#${uid}_dp)`, 3, "#2a3a4a", 1);
+1325:             // Glass door
+1326:             const winY = y + cpH + 6;
+1327:             const winH = h - cpH - 10;
+1328:             R(x + 6, winY, w - 12, winH, `url(#${uid}_gl)`, 6, "#2a3a4a", 1.5);
+1329:             // Glass glare
+1330:             R(x + 10, winY + 4, (w - 20) * 0.3, winH - 8, "rgba(255,255,255,0.05)", 4, "none", 0);
+1331:             // Knobs on control strip
+1332:             const knobY = y + cpH / 2;
+1333:             [0.2, 0.5, 0.8].forEach(p => {
+1334:                 C(x + w * p, knobY, 7, "#c0c8d0", "#7a8a9a", 1);
+1335:                 C(x + w * p, knobY, 3, "#4a5568", "#3a4558", 1);
+1336:             });
+1337:             // Door handle
+1338:             R(x + 14, winY + 12, w - 28, 8, "#9aabb8", 4, "#6b7a8d", 1);
+1339:             T(x + w / 2, winY + winH * 0.6, "OVEN", 10, "rgba(255,255,255,0.4)", "middle");
+1340: 
+1341:         } else if (type === 'DW') {
+1342:             // Body
+1343:             R(x, y, w, h, `url(#${uid}_ss)`, 4, "#8a9ab0", 1.5);
+1344:             // Control panel top
+1345:             const cpH = h * 0.12;
+1346:             R(x + 2, y + 2, w - 4, cpH, `url(#${uid}_dp)`, 3, "#2a3a4a", 1);
+1347:             // Indicator LEDs
+1348:             [0.3, 0.5, 0.7].forEach(p => {
+1349:                 C(x + w * p, y + cpH * 0.5, 3, p === 0.5 ? "#22c55e" : "#475569", "none", 0);
+1350:             });
+1351:             // Door panel
+1352:             R(x + 4, y + cpH + 4, w - 8, h - cpH - 8, `url(#${uid}_lp)`, 3, "#8a9ab0", 1);
+1353:             // Handle bar
+1354:             R(x + 14, y + cpH + 8, w - 28, 10, "#9aabb8", 5, "#6b7a8d", 1);
+1355:             T(x + w / 2, y + cpH + (h - cpH) * 0.55, "D/W", 13, "#8a9ab0", "middle");
+1356: 
+1357:         } else if (type === 'SINK') {
+1358:             // Tezgah üstü musluk — özel, arka plan transparan
+1359:             g.appendChild(createSVGElem("rect", { x, y, width: w, height: h, fill: "transparent", stroke: "none", "pointer-events": "none" }));
+1360:             const ctY = y - (40 * currentScale);
+1361:             // Faucet neck (curved path)
+1362:             const mid = x + w / 2;
+1363:             const fp = document.createElementNS(svgNS, "path");
+1364:             fp.setAttribute("d", `M ${mid} ${ctY + 4} Q ${mid + 50} ${ctY - 30} ${mid + 45} ${ctY + 8}`);
+1365:             fp.setAttribute("fill", "none"); fp.setAttribute("stroke", "#94a3b8"); fp.setAttribute("stroke-width", "8");
+1366:             fp.setAttribute("stroke-linecap", "round"); fp.setAttribute("pointer-events", "none");
+1367:             g.appendChild(fp);
+1368:             // Spout tip
+1369:             C(mid + 45, ctY + 8, 5, "#64748b", "none", 0);
+1370:             // Base
+1371:             R(mid - 10, ctY, 20, 14, "#94a3b8", 4, "#64748b", 1.5);
+1372:             // Cold/hot knobs
+1373:             C(mid - 20, ctY + 7, 7, "#e2e8f0", "#94a3b8", 1.5);
+1374:             C(mid + 20, ctY + 7, 7, "#fca5a5", "#f87171", 1.5);
+1375: 
+1376:         } else if (type === 'HOOD') {
+1377:             // Chimney top
+1378:             const chimW = w * 0.35;
+1379:             R(x + (w - chimW) / 2, y, chimW, h * 0.55, `url(#${uid}_ss)`, 3, "#8a9ab0", 1);
+1380:             // Canopy trapezoid
+1381:             const cyy = y + h * 0.55;
+1382:             const cph = h * 0.35;
+1383:             const pth = document.createElementNS(svgNS, "polygon");
+1384:             const inset = w * 0.08;
+1385:             pth.setAttribute("points", `${x + inset},${cyy + cph} ${x + (w - chimW) / 2},${cyy} ${x + (w + chimW) / 2},${cyy} ${x + w - inset},${cyy + cph}`);
+1386:             pth.setAttribute("fill", `url(#${uid}_ss)`); pth.setAttribute("stroke", "#8a9ab0"); pth.setAttribute("stroke-width", "1");
+1387:             pth.setAttribute("pointer-events", "none");
+1388:             g.appendChild(pth);
+1389:             // Base panel with vents
+1390:             R(x + inset, cyy + cph, w - inset * 2, h - (cyy - y) - cph, "#4a5568", 3, "#2a3a4a", 1);
+1391:             for (let i = 0; i < 4; i++) {
+1392:                 L(x + inset * 2 + i * (w - inset * 4) / 4, cyy + cph + 4, x + inset * 2 + i * (w - inset * 4) / 4, y + h - 4, "#2a3a4a", 1.5);
+1393:             }
+1394:             // Light strip
+1395:             R(x + inset + 2, y + h - 10, w - inset * 2 - 4, 6, "#fef9c3", 2, "#fde68a", 1);
+1396: 
+1397:         } else if (type === 'WM') {
+1398:             // Body
+1399:             R(x, y, w, h, `url(#${uid}_ss)`, 4, "#8a9ab0", 1.5);
+1400:             // Control strip
+1401:             const cph = h * 0.15;
+1402:             R(x + 2, y + 2, w - 4, cph, `url(#${uid}_dp)`, 3, "#2a3a4a", 1);
+1403:             // Dial
+1404:             C(x + w * 0.8, y + cph * 0.5, cph * 0.35, "#c0c8d0", "#7a8a9a", 1.5);
+1405:             C(x + w * 0.8, y + cph * 0.5, cph * 0.15, "#4a5568", "none", 0);
+1406:             // Door circle
+1407:             const dcx = x + w / 2; const dcy = y + cph + (h - cph) * 0.5;
+1408:             const dcr = Math.min(w, h - cph) * 0.38;
+1409:             C(dcx, dcy, dcr, `url(#${uid}_gl)`, "#2a3a4a", 2);
+1410:             C(dcx, dcy, dcr * 0.85, "rgba(255,255,255,0.06)", "#3a4a5a", 1);
+1411:             // Drum lines
+1412:             for (let a = 0; a < 6; a++) {
+1413:                 const ang = (a / 6) * Math.PI * 2;
+1414:                 L(dcx + Math.cos(ang) * dcr * 0.3, dcy + Math.sin(ang) * dcr * 0.3,
+1415:                     dcx + Math.cos(ang) * dcr * 0.75, dcy + Math.sin(ang) * dcr * 0.75,
+1416:                     "rgba(255,255,255,0.15)", 1.5);
+1417:             }
+1418:             // Handle
+1419:             R(x + w - 20, dcy - 15, 8, 30, "#8090a0", 4, "#606878", 1);
+1420:             T(x + w / 2, dcy, "WM", 11, "rgba(255,255,255,0.35)", "middle");
+1421: 
+1422:         } else {
+1423:             R(x, y, w, h, `url(#${uid}_ss)`, 4, "#8a9ab0", 1.5);
+1424:             T(x + w / 2, y + h / 2, emojiMap[type] || '📦', 28, "#64748b", "middle");
+1425:         }
+1426:                 } // end drawApplianceVisual
+1427: 
+1428:             } // end else (MDF skeleton view)
+1429: 
+1430:         if (cab.kind === 'APPL') {
+1431:             // Invisible placeholder for appl
+1432:         } else if (w > 20) {
+1433:             const txt = createSVGElem("text", { x: x + w / 2, y: y + h / 2, class: "text-label", "pointer-events": "none" });
+1434:             let kindText = cab.has_drawers ? 'ÇKM' : (cab.kind === 'BASE' ? 'ALT' : cab.kind === 'WALL' ? 'ÜST' : cab.kind === 'TALL' ? 'BOY' : cab.kind === 'FILLER' ? 'KÖR' : cab.kind);
+1435:             txt.textContent = (cab.code ? "[" + cab.code + "] " : "") + kindText;
+1436:             g.appendChild(txt);
+1437: 
+1438:             if (showDimensions) {
+1439:                 const dimY = cab.kind === 'WALL' ? y - 10 : y + h + 15;
+1440:                 const isLocked = cab.is_locked ? "bold" : "normal";
+1441:                 const txtDeco = cab.is_locked ? "underline" : "none";
+1442:                 const dimTxt = createSVGElem("text", {
+1443:                     x: x + w / 2, y: dimY, class: "text-label interact-dim",
+1444:                     "font-size": "13px", fill: "var(--primary)",
+1445:                     "font-weight": isLocked,
+1446:                     "text-decoration": txtDeco,
+1447:                     "cursor": "pointer"
+1448:                 });
+1449:                 dimTxt.textContent = `${cab.width_mm}`;
+1450:                 dimTxt.onclick = (e) => {
+1451:                     e.stopPropagation();
+1452:                     openEditPopover(cab, e.pageX, e.pageY);
+1453:                 };
+1454: 
+1455:                 g.appendChild(dimTxt);
+1456: 
+1457:                 // Ölçü çizgisi
+1458:                 const lineY = cab.kind === 'WALL' ? y - 2 : y + h + 2;
+1459:                 g.appendChild(createSVGElem("line", { x1: x, y1: lineY, x2: x + w, y2: lineY, stroke: "var(--primary)", "stroke-width": 1, "stroke-dasharray": "2", "pointer-events": "none" }));
+1460:             }
+1461:         }
+1462:         svg.appendChild(g);
+1463:         });
+1464: 
+1465:         // Draw Countertop Line across BASE cabinets (40mm thickness)
+1466:         const ctHeight = 40 * currentScale;
+1467:         const ctY = floorY - ((legH_mm + project.base_height) * currentScale) - ctHeight;
+1468:         const ct = createSVGElem("rect", { x: 0, y: ctY, width: seg.length_mm * currentScale, height: ctHeight, fill: "#facc15", opacity: 0.8, "pointer-events": "none" });
+1469:         if (showFrontView) {
+1470:             svg.appendChild(ct);
