@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: CAD_Planlayici
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      # Veritabanının CasaOS kapanıp açıldığında silinmesini engeller
+      - ./db.sqlite3:/app/db.sqlite3
+      # Statik dosyaların klasörünü harici tutar
+      - ./static:/app/static
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+    - arm
+  main: app
+  title:
+    custom: CAD Planlayıcı
+  description:
+    en: Mutfak Dolabı 3D CAD Planlama ve Kesim Listesi Uygulaması
+    tr: Mutfak Dolabı 3D CAD Planlama ve Kesim Listesi Uygulaması
+  icon: "https://cdn-icons-png.flaticon.com/512/3052/3052210.png"
+  category: "Utilities"
+  author: "onur topaloglu"
