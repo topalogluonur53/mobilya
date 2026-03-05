@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="dark">
+<html lang="tr">
 
 <head>
     <meta charset="UTF-8">
@@ -11,46 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* === TEMA SİSTEMİ: CSS Değişkenleri === */
-        :root,
-        [data-theme="dark"] {
-            --cad-canvas-bg: #1e1e1e;
-            --cad-panel-bg: #252526;
-            --cad-toolbar-bg: #2d2d30;
-            --cad-hover-bg: #3e3e42;
-            --cad-border: #333333;
-            --cad-border-light: #444444;
-            --cad-input-border: #555555;
-            --cad-input-bg: #1e1e1e;
-            --cad-text-main: #d4d4d4;
-            --cad-text-muted: #aaaaaa;
-            --cad-text-highlight: #ffffff;
-            --cad-svg-color: rgba(255, 255, 255, 0.08);
-            --cad-card-bg: #2d2d30;
-            --cad-row-alt: #252526;
-            --cad-row-hover: #3e3e42;
-            --cad-accordion-bg: #2d2d30;
-        }
-
-        [data-theme="light"] {
-            --cad-canvas-bg: #f3f4f6;
-            --cad-panel-bg: #ffffff;
-            --cad-toolbar-bg: #f8fafc;
-            --cad-hover-bg: #e2e8f0;
-            --cad-border: #e2e8f0;
-            --cad-border-light: #cbd5e1;
-            --cad-input-border: #cbd5e1;
-            --cad-input-bg: #f8fafc;
-            --cad-text-main: #1e293b;
-            --cad-text-muted: #475569;
-            --cad-text-highlight: #0f172a;
-            --cad-svg-color: #f1f5f9;
-            --cad-card-bg: #ffffff;
-            --cad-row-alt: #f8fafc;
-            --cad-row-hover: #f1f5f9;
-            --cad-accordion-bg: #ffffff;
-        }
-
         :root {
             --primary: #4F46E5;
             --primary-hover: #4338CA;
@@ -74,12 +34,12 @@
         }
 
         body {
-            background-color: var(--cad-canvas-bg);
+            background-color: #1e1e1e;
             /* Dark theme CAD */
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             display: grid;
             grid-template-columns: 320px 1fr;
-            grid-template-rows: 48px 46px 1fr 24px;
+            grid-template-rows: 48px 46px 40px 1fr 24px;
             height: 100vh;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
@@ -87,15 +47,47 @@
             padding: 0;
         }
 
+        /* Yatay Özellikler Çubuğu (Propertiers Bar) */
+        .sub-toolbar {
+            grid-column: 2;
+            grid-row: 3;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            font-size: 0.8rem;
+            color: #cccccc;
+            z-index: 10;
+        }
 
+        .sub-toolbar input,
+        .sub-toolbar select {
+            background: #1e1e1e;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            width: 70px;
+            font-size: 0.8rem;
+        }
+
+        .prop-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-right: 1px solid #444;
+            padding-right: 16px;
+        }
 
 
         /* 1) Üst Araç Çubuğu (Top Menu & Toolbar) */
         .top-toolbar {
             grid-column: 1 / 4;
             grid-row: 1;
-            background: var(--cad-panel-bg);
-            border-bottom: 1px solid var(--cad-border);
+            background: #252526;
+            border-bottom: 1px solid #333;
             display: flex;
             align-items: center;
             padding: 0 16px;
@@ -107,7 +99,7 @@
             display: flex;
             gap: 16px;
             font-size: 0.85rem;
-            color: var(--cad-text-muted);
+            color: #cccccc;
         }
 
         .top-menu div {
@@ -117,21 +109,21 @@
         }
 
         .top-menu div:hover {
-            background: var(--cad-hover-bg);
-            color: var(--cad-text-highlight);
+            background: #3e3e42;
+            color: #fff;
         }
 
         .tool-group {
             display: flex;
             gap: 4px;
-            border-left: 1px solid var(--cad-border-light);
+            border-left: 1px solid #444;
             padding-left: 20px;
         }
 
         .tool-btn {
             background: transparent;
             border: none;
-            color: var(--cad-text-muted);
+            color: #cccccc;
             padding: 6px;
             border-radius: 4px;
             cursor: pointer;
@@ -142,13 +134,13 @@
         }
 
         .tool-btn:hover {
-            background: var(--cad-hover-bg);
-            color: var(--cad-text-highlight);
+            background: #3e3e42;
+            color: #fff;
         }
 
         .tool-btn.active {
             background: rgba(79, 70, 229, 0.4);
-            color: var(--cad-text-highlight);
+            color: #fff;
             border: 1px solid rgba(79, 70, 229, 0.8);
         }
 
@@ -156,16 +148,16 @@
         aside.left-sidebar {
             width: 100%;
             grid-column: 1;
-            grid-row: 2 / 4;
-            background: var(--cad-panel-bg);
-            border-right: 1px solid var(--cad-border);
+            grid-row: 2 / 5;
+            background: #252526;
+            border-right: 1px solid #333;
             padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 12px;
             z-index: 10;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
         }
 
         aside.left-sidebar::-webkit-scrollbar {
@@ -192,7 +184,7 @@
             border-radius: 12px;
             overflow: visible;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--cad-hover-bg);
+            border: 1px solid #3e3e42;
             transition: box-shadow 0.25s ease;
         }
 
@@ -203,7 +195,7 @@
 
         .accordion-btn {
             width: 100%;
-            background: var(--cad-toolbar-bg);
+            background: #2d2d30;
             border: none;
             padding: 16px 20px;
             cursor: pointer;
@@ -213,7 +205,7 @@
             text-align: left;
             border-radius: 12px;
             box-shadow: none;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             font-size: 0.95rem;
             font-weight: 600;
             transition: background 0.2s ease, color 0.2s ease, border-radius 0.1s;
@@ -228,7 +220,7 @@
         }
 
         .accordion-btn:hover {
-            background: var(--cad-hover-bg);
+            background: #3e3e42;
             color: var(--primary);
             transform: none !important;
             box-shadow: none !important;
@@ -280,7 +272,7 @@
         .accordion-title span {
             display: block;
             font-size: 0.72rem;
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
             font-weight: 400;
             margin-top: 2px;
         }
@@ -290,7 +282,7 @@
         }
 
         .accordion-chevron {
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
             flex-shrink: 0;
         }
@@ -305,7 +297,7 @@
             overflow: hidden;
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
             opacity: 0;
-            background: var(--cad-toolbar-bg);
+            background: #2d2d30;
         }
 
         .accordion-item.open .accordion-body {
@@ -315,31 +307,45 @@
 
         .accordion-body-inner {
             padding: 4px 20px 20px 20px;
-            border-top: 1px solid var(--cad-border);
+            border-top: 1px solid #f1f5f9;
         }
 
         .accordion-body h2 {
             display: none;
         }
 
-        /* === SAĞ INSPECTOR PANELI (CAD Düzenleme) === */
+        /* Sağ Araç Çekmece Paneli */
+        .tools-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: transparent;
+            z-index: 999;
+        }
+
+        .tools-backdrop.open {
+            display: block;
+        }
+
         aside.right-sidebar {
             position: fixed;
-            top: 94px;
-            /* top-toolbar (48px) + main-header (46px) */
+            top: 0;
             right: 0;
-            bottom: 24px;
-            /* status bar */
+            height: 100vh;
             width: 300px;
-            background: var(--cad-panel-bg);
-            border-left: 1px solid var(--cad-border);
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(79, 70, 229, 0.15);
+            padding: 24px 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            z-index: 100;
+            gap: 16px;
+            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+            z-index: 1000;
             transform: translateX(100%);
-            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: -6px 0 24px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         aside.right-sidebar.open {
@@ -351,134 +357,9 @@
         }
 
         aside.right-sidebar::-webkit-scrollbar-thumb {
-            background: var(--cad-hover-bg);
+            background: #cbd5e1;
             border-radius: 4px;
         }
-
-        .ctx-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            background: var(--cad-toolbar-bg);
-            border-bottom: 1px solid var(--cad-border);
-            position: sticky;
-            top: 0;
-            z-index: 5;
-        }
-
-        .ctx-header h3 {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--cad-text-main);
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .ctx-close-btn {
-            background: transparent !important;
-            color: var(--cad-text-muted) !important;
-            font-size: 1.2rem;
-            padding: 0 !important;
-            width: auto !important;
-            border: none !important;
-            box-shadow: none !important;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .ctx-close-btn:hover {
-            color: var(--cad-text-highlight) !important;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .ctx-section {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--cad-border);
-        }
-
-        .ctx-section label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--cad-text-muted);
-            margin-bottom: 8px;
-        }
-
-        .ctx-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .ctx-grid-full {
-            margin-top: 8px;
-        }
-
-        .ctx-grid button,
-        .ctx-grid-full button {
-            width: 100%;
-            padding: 8px 6px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            background: var(--cad-toolbar-bg);
-            color: var(--cad-text-main);
-            border: 1px solid var(--cad-border-light);
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: none;
-            transition: background 0.15s ease, border-color 0.15s ease;
-        }
-
-        .ctx-grid button:hover,
-        .ctx-grid-full button:hover {
-            background: var(--cad-hover-bg);
-            border-color: var(--primary);
-            color: var(--cad-text-highlight);
-            transform: none;
-            box-shadow: none;
-        }
-
-        .dim-input-group {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--cad-border);
-        }
-
-        .dim-input-group label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--cad-text-muted);
-            letter-spacing: 0.5px;
-        }
-
-        .dim-input-group input {
-            background: var(--cad-canvas-bg);
-            border: 1px solid var(--cad-input-border);
-            color: var(--cad-text-main);
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            margin-top: 4px;
-            margin-bottom: 6px;
-        }
-
-        .tools-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: transparent;
-            z-index: 99;
-        }
-
-        .tools-backdrop.open {
-            display: block;
-        }
-
 
 
 
@@ -503,34 +384,32 @@
         main,
         .main-content {
             grid-column: 2;
-            grid-row: 3;
-            min-height: 0;
-            /* Add min-height to enable flex child scrolling */
+            grid-row: 4;
             flex: 1;
             display: flex;
             flex-direction: column;
             position: relative;
-            background: var(--cad-canvas-bg);
+            background: #1e1e1e;
             /* Dark Canvas */
         }
 
         .main-header {
             padding: 0 16px;
-            border-bottom: 1px solid var(--cad-border);
+            border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
             height: 100%;
-            background: var(--cad-panel-bg);
+            background: #252526;
         }
 
         .tabs {
             display: flex;
             gap: 16px;
-            background: var(--cad-canvas-bg);
+            background: #1e1e1e;
             padding: 4px;
             border-radius: 8px;
-            border: 1px solid var(--cad-border);
+            border: 1px solid #333;
         }
 
         .tab-btn {
@@ -540,12 +419,12 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
         }
 
         .tab-btn.active {
-            background: var(--cad-hover-bg);
-            color: var(--cad-text-highlight);
+            background: #3e3e42;
+            color: white;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
         }
 
@@ -565,7 +444,7 @@
             overflow: hidden !important;
             padding: 0 !important;
             display: none;
-            background-color: var(--cad-canvas-bg);
+            background-color: #1e1e1e;
         }
 
         #view-2d.active {
@@ -598,7 +477,7 @@
         h1,
         h2,
         h3 {
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             font-weight: 600;
         }
 
@@ -621,14 +500,14 @@
         h2 {
             font-size: 1.15rem;
             padding-bottom: 12px;
-            border-bottom: 1px solid var(--cad-border);
+            border-bottom: 1px solid #f1f5f9;
             margin-bottom: 20px;
-            color: var(--cad-text-main);
+            color: #1e293b;
         }
 
         .card {
-            background: var(--cad-card-bg);
-            border: 1px solid var(--cad-border);
+            background: transparent;
+            border: 1px solid #3e3e42;
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -649,7 +528,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 600;
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
             margin-bottom: 8px;
         }
 
@@ -657,25 +536,25 @@
         select {
             width: 100%;
             padding: 12px 14px;
-            background: var(--cad-input-bg);
-            border: 1px solid var(--cad-input-border);
+            background: #3e3e42;
+            border: 1px solid #3e3e42;
             border-radius: 8px;
             font-size: 0.95rem;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             transition: all 0.2s ease;
             outline: none;
         }
 
         input:focus,
         select:focus {
-            background: var(--cad-card-bg);
+            background: #ffffff;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
 
         button {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-            color: var(--cad-text-highlight);
+            color: white;
             border: none;
             padding: 12px 18px;
             border-radius: 8px;
@@ -698,14 +577,14 @@
         }
 
         button.outline {
-            background: var(--cad-card-bg);
+            background: white;
             color: var(--primary);
             border: 1px solid var(--primary);
             box-shadow: none;
         }
 
         button.outline:hover {
-            background: var(--cad-hover-bg);
+            background: #3e3e42;
             transform: translateY(-1px);
             border-color: var(--primary-hover);
         }
@@ -734,22 +613,14 @@
         }
 
         th {
-            background: var(--cad-toolbar-bg);
+            background: #3e3e42;
             font-weight: 600;
-            color: var(--cad-text-muted);
-        }
-
-        tr:nth-child(even) {
-            background: var(--cad-row-alt);
-        }
-
-        tr:hover {
-            background: var(--cad-row-hover);
+            color: #aaaaaa;
         }
 
         /* SVG Styles */
         .segment-view {
-            background: var(--cad-panel-bg);
+            background: #252526;
             border-radius: var(--radius);
             padding: 24px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -761,24 +632,6 @@
         svg {
             border-bottom: 4px solid #cbd5e1;
             user-select: none;
-        }
-
-        /* 2D SVG Cabinet Selection Highlight */
-        .cab-selected {
-            stroke: #4f46e5 !important;
-            stroke-width: 3 !important;
-            filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.7));
-            animation: cab-pulse 1.8s ease-in-out infinite alternate;
-        }
-
-        @keyframes cab-pulse {
-            0% {
-                filter: drop-shadow(0 0 4px rgba(79, 70, 229, 0.5));
-            }
-
-            100% {
-                filter: drop-shadow(0 0 10px rgba(79, 70, 229, 0.9));
-            }
         }
 
         .cab-base,
@@ -871,7 +724,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: var(--cad-text-highlight);
+            color: white;
             font-size: 14px;
             font-weight: bold;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
@@ -879,7 +732,7 @@
 
         /* Black/Dark gray need white checkmark, white needs dark checkmark */
         .color-btn[data-color="white"].active::before {
-            color: var(--cad-text-main);
+            color: #d4d4d4;
         }
 
         .color-btn:hover {
@@ -914,7 +767,7 @@
             transform: translateX(-50%);
             font-size: 10px;
             white-space: nowrap;
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
             opacity: 0;
             transition: opacity 0.2s;
         }
@@ -1119,7 +972,7 @@
         aside.right-sidebar button {
             width: 100%;
             background: rgba(0, 0, 0, 0.03);
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             text-align: center;
             padding: 10px 10px;
             border: 1px solid transparent;
@@ -1138,8 +991,8 @@
         }
 
         .dim-input-group {
-            background: var(--cad-toolbar-bg);
-            border: 1px solid var(--cad-hover-bg);
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 10px;
@@ -1148,11 +1001,11 @@
 
         .dim-input-group label {
             text-transform: none;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
         }
 
         .dim-input-group input {
-            background: var(--cad-hover-bg);
+            background: #3e3e42;
             border: 1px solid #e2e8f0;
             margin-bottom: 8px;
         }
@@ -1183,7 +1036,7 @@
             min-width: 200px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            border: 1px solid var(--cad-hover-bg);
+            border: 1px solid #3e3e42;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -1196,7 +1049,7 @@
             background: none;
             border: none;
             border-radius: 0;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             box-shadow: none;
             font-weight: 500;
             font-size: 0.9rem;
@@ -1211,8 +1064,8 @@
         }
 
         .action-btn {
-            background: var(--cad-panel-bg);
-            color: var(--cad-text-muted);
+            background: #252526;
+            color: #aaaaaa;
             border: none;
             padding: 0 12px;
             cursor: pointer;
@@ -1228,14 +1081,14 @@
 
         .action-btn:hover:not(:disabled) {
             background-color: #f1f5f9;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             transform: none !important;
         }
 
         .action-btn:disabled {
             opacity: 0.4;
             cursor: not-allowed;
-            background: var(--cad-hover-bg);
+            background: #3e3e42;
         }
 
         /* ============================================
@@ -1248,7 +1101,7 @@
             padding: 5px;
             border-radius: 12px;
             margin-bottom: 24px;
-            border: 1px solid var(--cad-hover-bg);
+            border: 1px solid #3e3e42;
         }
 
         .cutlist-subtab-btn {
@@ -1260,7 +1113,7 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 0.82rem;
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -1301,8 +1154,8 @@
         }
 
         .cost-card {
-            background: var(--cad-toolbar-bg);
-            border: 1px solid var(--cad-hover-bg);
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
             border-radius: 14px;
             padding: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -1330,7 +1183,7 @@
         .cost-card-header h3 {
             font-size: 0.95rem;
             font-weight: 700;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
             margin: 0;
             padding: 0;
             border: none;
@@ -1350,8 +1203,8 @@
             cursor: pointer;
             font-size: 0.78rem;
             font-weight: 700;
-            color: var(--cad-text-muted);
-            background: var(--cad-hover-bg);
+            color: #aaaaaa;
+            background: #3e3e42;
             transition: all 0.2s ease;
             white-space: nowrap;
             box-shadow: none;
@@ -1382,7 +1235,7 @@
         .cost-input-row label {
             font-size: 0.72rem;
             font-weight: 700;
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
             margin-bottom: 5px;
             letter-spacing: 0.3px;
         }
@@ -1393,14 +1246,14 @@
             font-size: 0.88rem;
             border: 1.5px solid var(--border);
             border-radius: 8px;
-            background: var(--cad-hover-bg);
+            background: #3e3e42;
             transition: all 0.2s;
         }
 
         .cost-input-row input:focus,
         .cost-input-row select:focus {
             border-color: var(--primary);
-            background: var(--cad-toolbar-bg);
+            background: #2d2d30;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
@@ -1408,7 +1261,7 @@
             background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
             border-radius: 14px;
             padding: 24px;
-            color: var(--cad-text-highlight);
+            color: white;
             margin-bottom: 24px;
         }
 
@@ -1456,7 +1309,7 @@
             border: 2px solid var(--border);
             border-radius: 12px;
             overflow: hidden;
-            background: var(--cad-toolbar-bg);
+            background: #2d2d30;
             margin-bottom: 16px;
         }
 
@@ -1477,13 +1330,13 @@
 
         .sheet-header small {
             font-size: 0.75rem;
-            color: var(--cad-text-muted);
+            color: #aaaaaa;
             font-weight: 500;
         }
 
         .sheet-canvas-wrap {
             padding: 16px;
-            background: var(--cad-hover-bg);
+            background: #3e3e42;
             display: flex;
             justify-content: center;
         }
@@ -1499,8 +1352,8 @@
             gap: 12px;
             margin-bottom: 20px;
             padding: 14px 16px;
-            background: var(--cad-toolbar-bg);
-            border: 1px solid var(--cad-hover-bg);
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
             border-radius: 10px;
         }
 
@@ -1510,7 +1363,7 @@
             gap: 7px;
             font-size: 0.78rem;
             font-weight: 600;
-            color: var(--cad-text-main);
+            color: #d4d4d4;
         }
 
         .legend-swatch {
@@ -1553,7 +1406,7 @@
 <body>
     <!-- 1) Üst Araç Çubuğu (Top Toolbar) -->
     <header class="top-toolbar">
-        <div style="font-weight: 700; color: var(--cad-text-highlight); margin-right: 20px;">CAD Planlayıcı</div>
+        <div style="font-weight: 700; color: #fff; margin-right: 20px;">CAD Planlayıcı</div>
         <div class="top-menu">
             <div>Dosya</div>
             <div>Düzen</div>
@@ -1561,17 +1414,19 @@
             <div>Standartlar</div>
             <div>Yardım</div>
         </div>
-
+        <div class="tool-group" id="tool-group">
+            <button class="tool-btn active" title="Seçim Aracı (S)" data-tool="select">🖱️</button>
+            <button class="tool-btn" title="Taşı - X Ekseninde Kaydır (M)" data-tool="move">↔️</button>
+            <button class="tool-btn" title="Manuel Cihaz Ekle" data-tool="place">➕</button>
+        </div>
         <div style="flex:1"></div>
-        <div
-            style="font-size: 0.8rem; color: var(--cad-text-muted); border-left: 1px solid var(--cad-border-light); padding-left:16px;">
-            Birim: <strong>mm</strong> &nbsp;&nbsp;|&nbsp;&nbsp; Tema: <span id="theme-toggle-btn"
-                style="cursor:pointer; color:var(--primary); font-weight:bold;">🌙 Koyu</span>
+        <div style="font-size: 0.8rem; color: #aaa; border-left: 1px solid #444; padding-left:16px;">
+            Birim: <strong>mm</strong> &nbsp;&nbsp;|&nbsp;&nbsp; Tema: Koyu
         </div>
     </header>
     <!-- 2ci Menü (Proje + 2D/3D Tabs) -->
     <div class="main-header" class="main-header" id="toolbar"
-        style="grid-column: 2; grid-row: 2; background: var(--cad-panel-bg); border-bottom: 1px solid var(--cad-border); z-index: 10; padding: 0 16px; height: 100%; display: flex; align-items: center;">
+        style="grid-column: 2; grid-row: 2; background: #252526; border-bottom: 1px solid #333; z-index: 10; padding: 0 16px; height: 100%; display: flex; align-items: center;">
         <div>
             <h2 style="margin:0; border:none;" id="current-project-title">Proje Adı</h2>
         </div>
@@ -1584,10 +1439,9 @@
 
         <div style="display:flex; gap:12px; align-items:center;">
             <!-- Undo/Redo Group -->
-            <div
-                style="display:flex; border:1px solid var(--cad-border-light); border-radius:8px; overflow:hidden; height:38px;">
+            <div style="display:flex; border:1px solid #444; border-radius:8px; overflow:hidden; height:38px;">
                 <button id="btn-undo" class="action-btn" disabled title="Geri Al">↶</button>
-                <div style="width:1px; background:var(--cad-border-light);"></div>
+                <div style="width:1px; background:#444;"></div>
                 <button id="btn-redo" class="action-btn" disabled title="İleri Al">↷</button>
             </div>
 
@@ -1642,6 +1496,10 @@
         </div>
     </div>
 
+    <!-- Yatay Özellik Çubuğu (Properties) -->
+    <div class="sub-toolbar" id="inspector-horizontal">
+        <div style="color:#888;">Sahneden düzenlemek istediğiniz bir nesne seçin.</div>
+    </div>
 
 
     <aside class="left-sidebar">
@@ -1661,7 +1519,7 @@
         <!-- 1) Kayıtlı Projelerim -->
         <div class="accordion-item open" id="panel-load-project">
             <button class="accordion-btn" onclick="toggleAccordion(this)">
-                <div class="accordion-icon" style="background:var(--cad-svg-color);">📁</div>
+                <div class="accordion-icon" style="background:rgba(255,255,255,0.1);">📁</div>
                 <div class="accordion-title">
                     <strong>Kayıtlı Projelerim</strong>
                     <span>Projeleri aç, yeniden adlandır veya sil</span>
@@ -1691,7 +1549,7 @@
         <!-- 2) Dolap Rengi -->
         <div class="accordion-item" id="panel-cab-color">
             <button class="accordion-btn" onclick="toggleAccordion(this)">
-                <div class="accordion-icon" style="background:var(--cad-svg-color);">🎨</div>
+                <div class="accordion-icon" style="background:rgba(255,255,255,0.1);">🎨</div>
                 <div class="accordion-title">
                     <strong>Dolap Rengi</strong>
                     <span>Renk teması seç</span>
@@ -1722,7 +1580,7 @@
         <!-- 3) Yeni Proje -->
         <div class="accordion-item open" id="panel-project">
             <button class="accordion-btn" onclick="toggleAccordion(this)">
-                <div class="accordion-icon" style="background:var(--cad-svg-color);">✨</div>
+                <div class="accordion-icon" style="background:rgba(255,255,255,0.1);">✨</div>
                 <div class="accordion-title">
                     <strong>Yeni Proje</strong>
                     <span>Proje oluştur, yerleşim tipini belirle</span>
@@ -1757,7 +1615,7 @@
         <!-- Uygulama Ayarları -->
         <div class="accordion-item" id="panel-settings">
             <button class="accordion-btn" onclick="toggleAccordion(this)">
-                <div class="accordion-icon" style="background:var(--cad-svg-color);">⚙️</div>
+                <div class="accordion-icon" style="background:rgba(255,255,255,0.1);">⚙️</div>
                 <div class="accordion-title">
                     <strong>Uygulama Ayarları</strong>
                     <span>Standart ölçüleri değiştir</span>
@@ -1805,7 +1663,7 @@
         <!-- 4) Duvar Ölçüleri -->
         <div class="accordion-item" id="panel-segment" style="opacity: 0.5; pointer-events: none;">
             <button class="accordion-btn" onclick="toggleAccordion(this)">
-                <div class="accordion-icon" style="background:var(--cad-svg-color);">📐</div>
+                <div class="accordion-icon" style="background:rgba(255,255,255,0.1);">📐</div>
                 <div class="accordion-title">
                     <strong>Duvar Ölçüleri</strong>
                     <span>A ve B duvarlarının uzunluğu &amp; yüksekliği</span>
@@ -1953,7 +1811,7 @@
                         style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                         <h2 style="margin:0; border:none; padding:0;">Üretim Kesim Listesi (MDF 18mm)</h2>
                         <select id="cutlist-filter" onchange="applyCutlistFilter()"
-                            style="width:auto; padding:8px 12px; font-size:0.85rem; border-radius:6px; background:#f8fafc; border: 1px solid var(--cad-hover-bg);">
+                            style="width:auto; padding:8px 12px; font-size:0.85rem; border-radius:6px; background:#f8fafc; border: 1px solid #3e3e42;">
                             <option value="all">Tümü (Bütün Parçalar)</option>
                             <option value="base">Sadece Alt Dolap Gövdeleri</option>
                             <option value="wall">Sadece Üst Dolap Gövdeleri</option>
@@ -2005,7 +1863,7 @@
                     <!-- Gövde Malzemesi -->
                     <div class="cost-card">
                         <div class="cost-card-header">
-                            <div class="cost-card-icon" style="background:var(--cad-svg-color);">🪵</div>
+                            <div class="cost-card-icon" style="background:rgba(255,255,255,0.1);">🪵</div>
                             <div>
                                 <h3>Gövde Malzemesi</h3>
                                 <p style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">İskelet ve iç
@@ -2054,7 +1912,7 @@
                     <!-- Kapak Malzemesi -->
                     <div class="cost-card">
                         <div class="cost-card-header">
-                            <div class="cost-card-icon" style="background:var(--cad-svg-color);">🎨</div>
+                            <div class="cost-card-icon" style="background:rgba(255,255,255,0.1);">🎨</div>
                             <div>
                                 <h3>Kapak Malzemesi</h3>
                                 <p style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Kapak ve çekmece
@@ -2129,10 +1987,8 @@
                             </thead>
                             <tbody id="cl-cost-tbody"></tbody>
                             <tfoot>
-                                <tr style="background:#1e1b4b; color:var(--cad-text-highlight);">
-                                    <td colspan="4"
-                                        style="font-weight:800; color:var(--cad-text-highlight); padding:12px 10px;">
-                                        GENEL
+                                <tr style="background:#1e1b4b; color:white;">
+                                    <td colspan="4" style="font-weight:800; color:white; padding:12px 10px;">GENEL
                                         TOPLAM</td>
                                     <td id="cl-cost-grand-total"
                                         style="font-weight:900; font-size:1.1rem; color:#a5f3fc; padding:12px 10px;">—
@@ -2199,14 +2055,10 @@
         <aside class="right-sidebar" id="tools-sidebar">
 
             <div class="ctx-header">
-                <h3 id="inspector-title">Düzenleme Paneli</h3>
-                <button class="ctx-close-btn" onclick="hideToolSidebar()" title="Kapat (Esc)">✕</button>
+                <h3>Dolap Araçları</h3>
+                <button onclick="hideToolSidebar()"
+                    style="background:transparent; color:#64748b; font-size:1.5rem; padding:0; width:auto; border:none; box-shadow:none;">&times;</button>
             </div>
-            <div id="inspector-badge"
-                style="padding:10px 16px; background:rgba(79,70,229,0.12); border-bottom:1px solid var(--cad-border); font-size:0.8rem; color:#818cf8; display:none;">
-                <span id="inspector-badge-text"></span>
-            </div>
-
 
             <!-- Ölçü ve Etiket Giriş Alanı -->
             <div class="dim-input-group" id="edit-popover">
@@ -2215,8 +2067,7 @@
                 <label>Etiket</label>
                 <input type="text" id="pop-label">
                 <button id="pop-save"
-                    style="background:var(--primary); color:var(--cad-text-highlight); width:100%; margin-top:10px; padding:12px;">✅
-                    ÖLÇÜYÜ
+                    style="background:var(--primary); color:white; width:100%; margin-top:10px; padding:12px;">✅ ÖLÇÜYÜ
                     UYGULA</button>
             </div>
 
@@ -2226,8 +2077,7 @@
                 <label>Yükseklik (mm) (Ops.)</label>
                 <input type="number" id="appl-pop-height" placeholder="Otomatik">
                 <button id="appl-pop-save"
-                    style="background:var(--primary); color:var(--cad-text-highlight); width:100%; margin-top:10px; padding:12px;">✅
-                    CİHAZI
+                    style="background:var(--primary); color:white; width:100%; margin-top:10px; padding:12px;">✅ CİHAZI
                     GÜNCELLE</button>
             </div>
 
@@ -2296,8 +2146,7 @@
                 <div class="ctx-section">
                     <label>Boşluğu Doldur</label>
                     <div class="ctx-grid-full">
-                        <button id="btn-gap-fill"
-                            style="background:var(--primary); color:var(--cad-text-highlight); padding:12px;">
+                        <button id="btn-gap-fill" style="background:var(--primary); color:#fff; padding:12px;">
                             ✅ Yeni Dolap Ekle
                         </button>
                     </div>
@@ -2519,25 +2368,11 @@
                 }
             }
 
-            function showToolSidebar(label, itemType) {
+            function showToolSidebar() {
                 const sidebar = document.getElementById('tools-sidebar');
                 const backdrop = document.getElementById('tools-backdrop');
                 sidebar.classList.add('open');
                 backdrop.classList.add('open');
-
-                // Update panel header info
-                const title = document.getElementById('inspector-title');
-                const badge = document.getElementById('inspector-badge');
-                const badgeText = document.getElementById('inspector-badge-text');
-
-                if (label) {
-                    title.textContent = itemType === 'appliance' ? 'Cihaz Düzenle' : 'Dolap Düzenle';
-                    badge.style.display = 'block';
-                    badgeText.textContent = label;
-                } else {
-                    title.textContent = 'Düzenleme Paneli';
-                    badge.style.display = 'none';
-                }
             }
 
             function hideToolSidebar() {
@@ -2545,20 +2380,7 @@
                 const backdrop = document.getElementById('tools-backdrop');
                 sidebar.classList.remove('open');
                 backdrop.classList.remove('open');
-                // Clear visual selection
-                if (selectedRect) {
-                    selectedRect.classList.remove('cab-selected');
-                    selectedRect = null;
-                }
-                selectedCabIdActive = null;
-                selectedObjectForInspector = null;
             }
-
-            // Close inspector on Escape
-            document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') hideToolSidebar();
-            });
-
 
             document.getElementById('proj-layout').addEventListener('change', e => {
                 document.getElementById('group-seg-b').style.display = e.target.value === 'L' ? 'block' : 'none';
@@ -2664,16 +2486,6 @@
                     }
 
                     draw2D();
-
-                    // Re-apply selection highlight after redraw
-                    if (selectedCabIdActive) {
-                        const newRect = document.querySelector(`[data-cab-id="${selectedCabIdActive}"]`);
-                        if (newRect) {
-                            selectedRect = newRect;
-                            newRect.classList.add('cab-selected');
-                        }
-                    }
-
                     if (document.getElementById('view-3d').classList.contains('active')) {
                         init3D();
                     }
@@ -3119,16 +2931,13 @@
 
                                 const dStyle = cab.door_style || 'AUTO';
                                 const is4Door = dStyle === '4' || (dStyle === 'AUTO' && cab.width_mm >= 1200);
-                                const is2Door = dStyle === '2' || (dStyle === 'AUTO' && cab.width_mm >= 600 && cab.width_mm < 1200);
-                                if (cab.kind === 'BASE' || cab.kind === 'WALL') {
-                                    rect.style.cursor = 'pointer';
-                                    rect.dataset.cabId = cab.id;
-                                    rect.onclick = (e) => { selectCabinetRect(rect, cab.id); showContext(e, cab); };
+                                const is2Door = dStyle === '2' || (dStyle === 'AUTO' && cab.width_mm >= 600 && cab.width_mm < 1200); if
+                                    (cab.kind === 'BASE' || cab.kind === 'WALL') {
+                                    rect.onclick = (e) => showContext(e, cab);
                                 } else if (cab.kind === 'FILLER') {
                                     rect.style.cursor = 'pointer';
                                     rect.onclick = (e) => { e.stopPropagation(); showFillerContext(cab); };
                                 }
-
 
                                 if (showFrontView) {
                                     if (cab.kind === 'BASE') {
@@ -3969,152 +3778,84 @@
                 };
             }
 
-            // === SEÇİM YÖNETİMİ ===
+            // Context Menu for Drawer
             let selectedObjectForInspector = null;
-            let selectedRect = null;
-            let selectedCabIdActive = null;
-
-            function selectCabinetRect(rectEl, cabId) {
-                // Clear previous selection
-                if (selectedRect) {
-                    selectedRect.classList.remove('cab-selected');
-                    const prevOverlay = document.getElementById('cab-select-overlay-' + selectedCabIdActive);
-                    if (prevOverlay) prevOverlay.remove();
-                }
-                // Apply selection to new rect
-                selectedRect = rectEl;
-                selectedCabIdActive = cabId;
-                rectEl.classList.add('cab-selected');
-            }
-
             function showContext(e, obj, isPiller = false) {
-                e.stopPropagation();
-                e.preventDefault();
-
+                // YENI CAD SİSTEMİ: Prompt ve pop-up yerine Sağ Tarafı doldur.
                 selectedObjectForInspector = obj;
-                const isCab = !!obj.kind;
-                const isAppl = !!obj.type;
 
-                // Build label for badge
-                let typeLabel, labelStr;
-                if (isCab) {
-                    typeLabel = obj.kind === 'BASE' ? '🔲 Alt Dolap' : '🔲 Üst Dolap';
-                    labelStr = `${typeLabel} — ${obj.width_mm} mm${obj.label ? ' · ' + obj.label : ''}`;
-                } else if (isAppl) {
-                    const typeMap = { FRIDGE: 'Buzdolabı', DW: 'Bulaşık Makinesi', WM: 'Çamaşır Makinesi', OVEN: 'Fırın', HOOD: 'Davlumbaz', SINK: 'Evye', CORNER: 'Kör Köşe' };
-                    typeLabel = typeMap[obj.type] || obj.type;
-                    labelStr = `📦 ${typeLabel} — ${obj.width_mm} mm`;
-                } else {
-                    labelStr = `Modül #${obj.id}`;
+                const panel = document.getElementById('inspector-horizontal'); // YATAY BAR
+
+                // Update status bar
+                document.getElementById('status-left').textContent = `Seçili: ${obj.label || obj.type || (isPiller ? 'Kör Parça' : 'Modül')}`;
+
+                let formHtml = `
+                    <div style="font-weight:600; color:#fff; min-width:120px; border-right:1px solid #444; padding-right:16px;">
+                        ${obj.label || obj.type || 'Bilinmeyen'} <span style="color:#777; font-size:0.7rem;">#${obj.id}</span>
+                    </div>
+
+                    <div class="prop-group">
+                        <label>W:</label> <input type="number" id="insp-w" value="${obj.width_mm}">
+                        <label style="margin-left:8px;">H:</label> <input type="number" id="insp-h" value="${obj.height_mm}">
+                        <label style="margin-left:8px;">X:</label> <input type="number" id="insp-x" value="${obj.start_mm}">
+                    </div>
+                `;
+
+                if (obj.kind === 'BASE' || obj.kind === 'WALL') {
+                    formHtml += `
+                     <div class="prop-group">
+                        <label>Kapak:</label>
+                        <select id="insp-door" style="width:90px;">
+                            <option value="AUTO" ${obj.door_style === 'AUTO' ? 'selected' : ''}>Oto</option>
+                            <option value="1" ${obj.door_style === '1' ? 'selected' : ''}>1 Kapak</option>
+                            <option value="2" ${obj.door_style === '2' ? 'selected' : ''}>2 Kapak</option>
+                        </select>
+                        
+                        <label style="margin-left:8px;">Çekmece:</label>
+                        <select id="insp-drawer" style="width:60px;">
+                            <option value="true" ${obj.has_drawers ? 'selected' : ''}>Var</option>
+                            <option value="false" ${!obj.has_drawers ? 'selected' : ''}>Yok</option>
+                        </select>
+                        
+                        <label style="margin-left:8px;" title="Motor bu modülü bir daha ezmesin">Kilitle:</label>
+                        <input type="checkbox" id="insp-lock" ${obj.is_locked ? 'checked' : ''} style="width:16px; height:16px; margin:0;">
+                     </div>
+                     `;
                 }
 
-                showToolSidebar(labelStr, isCab ? 'cabinet' : 'appliance');
+                formHtml += `<button onclick="applyInspectorChanges()" style="padding:4px 12px; background:var(--primary); color:white; border:none; border-radius:4px; font-weight:500; cursor:pointer;">Uygula</button>`;
 
-                // Show/hide the right sections
-                if (isCab) {
-                    document.getElementById('edit-popover').style.display = 'block';
-                    document.getElementById('appl-edit-popover').style.display = 'none';
-                    document.getElementById('cab-ctx').style.display = 'block';
-
-                    // Populate cab edit fields
-                    editingCabId = obj.id;
-                    editingCabData = obj;
-                    document.getElementById('pop-width').value = obj.width_mm;
-                    document.getElementById('pop-label').value = obj.label || '';
-
-                    const drawerBtn = document.getElementById('btn-ctx-drawer');
-                    drawerBtn.textContent = obj.has_drawers ? 'Kapaklı Yap' : 'Çekmeceli Yap';
-                    drawerBtn.style.display = obj.kind === 'BASE' ? 'block' : 'none';
-
-                    drawerBtn.onclick = async () => {
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/`, 'PATCH', { has_drawers: !obj.has_drawers });
-                        await reloadData();
-                    };
-
-                    const setDoorStyle = async (newStyle) => {
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/`, 'PATCH', { door_style: newStyle });
-                        await reloadData();
-                    };
-
-                    document.getElementById('btn-ctx-door-auto').onclick = () => setDoorStyle('AUTO');
-                    document.getElementById('btn-ctx-door-1').onclick = () => setDoorStyle('1');
-                    document.getElementById('btn-ctx-door-2').onclick = () => setDoorStyle('2');
-                    document.getElementById('btn-ctx-door-4').onclick = () => setDoorStyle('4');
-
-                    const setModStyle = async (newMod) => {
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/`, 'PATCH', { module_style: newMod });
-                        await reloadData();
-                    };
-
-                    document.getElementById('btn-ctx-mod-auto').onclick = () => setModStyle('AUTO');
-                    document.getElementById('btn-ctx-mod-1').onclick = () => setModStyle('1');
-                    document.getElementById('btn-ctx-mod-2').onclick = () => setModStyle('2');
-                    document.getElementById('btn-ctx-mod-4').onclick = () => setModStyle('4');
-
-                    document.getElementById('btn-ctx-split').onclick = async () => {
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/split/`, 'POST');
-                        await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
-                        await reloadData();
-                        hideToolSidebar();
-                    };
-
-                    document.getElementById('btn-ctx-merge-next').onclick = async () => {
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/merge_next/`, 'POST');
-                        await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
-                        await reloadData();
-                        hideToolSidebar();
-                    };
-
-                    document.getElementById('btn-ctx-merge-prev').onclick = async () => {
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/merge_prev/`, 'POST');
-                        await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
-                        await reloadData();
-                        hideToolSidebar();
-                    };
-
-                    document.getElementById('btn-ctx-delete').onclick = async () => {
-                        if (!confirm('Bu modülü silmek istediğinizden emin misiniz?')) return;
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/`, 'DELETE');
-                        await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
-                        await reloadData();
-                        hideToolSidebar();
-                    };
-
-                    document.getElementById('pop-save').onclick = async () => {
-                        const newW = parseInt(document.getElementById('pop-width').value);
-                        const newLabel = document.getElementById('pop-label').value;
-                        await saveHistoryState();
-                        await apiRequest(`/api/cabinets/${obj.id}/`, 'PATCH', { width_mm: newW, label: newLabel });
-                        await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
-                        await reloadData();
-                    };
-
-                } else if (isAppl) {
-                    openApplEditPopover(obj);
+                if (obj.type) {
+                    // this is an appliance
+                    formHtml += `<button onclick="deleteSelectedObj()" style="padding:4px 12px; background:#ef4444; color:white; border:none; border-radius:4px; margin-left:8px; font-weight:500; cursor:pointer;">Sil</button>`;
                 }
+
+                panel.innerHTML = formHtml;
+                e.stopPropagation();
             }
 
             async function applyInspectorChanges() {
                 if (!selectedObjectForInspector) return;
                 const obj = selectedObjectForInspector;
-                const w = parseInt(document.getElementById('insp-w')?.value || obj.width_mm);
-                let payload = { width_mm: w };
+
+                // Read from inputs
+                const w = parseInt(document.getElementById('insp-w').value);
+                const x = parseInt(document.getElementById('insp-x').value);
+
+                let payload = { width_mm: w, start_mm: x };
+
                 if (obj.kind) {
+                    // Cabinet specific
                     payload.is_locked = document.getElementById('insp-lock')?.checked || false;
                     payload.door_style = document.getElementById('insp-door')?.value;
                     payload.has_drawers = document.getElementById('insp-drawer')?.value === 'true';
                 }
+
                 const endpoint = obj.kind ? `/api/cabinets/${obj.id}/` : `/api/appliances/${obj.id}/`;
                 await apiRequest(endpoint, 'PATCH', payload);
                 await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
                 await reloadData();
+                document.getElementById('status-left').textContent = 'Değişiklik kaydedildi, sistem güncellendi.';
             }
 
             async function deleteSelectedObj() {
@@ -4122,20 +3863,18 @@
                 await apiRequest(`/api/appliances/${selectedObjectForInspector.id}/`, 'DELETE');
                 await apiRequest(`/api/projects/${projectId}/generate/`, 'POST');
                 await reloadData();
+                document.getElementById('inspector-content').innerHTML = '<p>Obje silindi.</p>';
                 selectedObjectForInspector = null;
-                hideToolSidebar();
+                document.getElementById('status-left').textContent = 'Hazır.';
             }
 
-            // --- END INSPECTOR BLOCK ---
-
+            // --- END NEW INSTRUCTOR BLOCK ---
 
             function showContextOld(e, cab) {
                 e.preventDefault();
                 selectedCabId = cab.id;
 
-                const typeLabel = cab.kind === 'BASE' ? '🔲 Alt Dolap' : '🔲 Üst Dolap';
-                const labelStr = `${typeLabel} — ${cab.width_mm} mm${cab.label ? ' · ' + cab.label : ''}`;
-                showToolSidebar(labelStr, 'cabinet');
+                showToolSidebar();
                 document.getElementById('edit-popover').style.display = 'block';
                 document.getElementById('appl-edit-popover').style.display = 'none';
                 document.getElementById('cab-ctx').style.display = 'block';
@@ -4337,211 +4076,180 @@
                 await reloadData();
             };
             // ---------------- THREE JS 3D VIEWER ----------------
-            let renderer, scene, camera, controls;
-
-            // Materials
-            let matBase, matDrawer, matWall, matCounter, matHandle;
-            let matSilver, matDark, matGlass, matRoomWall, matSinkHole;
-
-            function init3D() {
-                const container = document.getElementById('canvas-container');
-                container.innerHTML = '';
-
-                // Setup 
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0xf8fafc);
-
-                const w = container.clientWidth;
-                const h = 500; // Fixed height in tab
-
+            let renderer, scene, camera, controls; function
+                init3D() {
+                const
+                    container = document.getElementById('canvas-container');
+                container.innerHTML = ''; // Setup scene=new THREE.Scene();
+                scene.background = new THREE.Color(0xf8fafc); const
+                    w = container.clientWidth; const h = 500; // Fixed height in tab
                 camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
-                camera.position.set(0, 1500, 4000);
-
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(w, h);
-                renderer.shadowMap.enabled = true;
-                container.appendChild(renderer.domElement);
-
-                controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.target.set(1500, 1000, 0);
-                controls.update();
-
-                // Lights
+                camera.position.set(0, 1500, 4000); renderer = new
+                    THREE.WebGLRenderer({ antialias: true }); renderer.setSize(w,
+                        h); renderer.shadowMap.enabled = true;
+                container.appendChild(renderer.domElement); controls = new
+                    THREE.OrbitControls(camera, renderer.domElement);
+                controls.target.set(1500, 1000, 0); controls.update(); // Lights
                 const light = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
-                light.position.set(0, 3000, 0);
-                scene.add(light);
-
-                const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-                dirLight.position.set(0, 2000, 2000);
-                dirLight.castShadow = true;
-                scene.add(dirLight);
-
-                // Floor 
-                const planeGeo = new THREE.PlaneGeometry(8000, 8000);
-                const planeMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
-                const plane = new THREE.Mesh(planeGeo, planeMat);
-                plane.rotation.x = -Math.PI / 2;
-                plane.receiveShadow = true;
-                scene.add(plane);
-
-                // Initialize Materials 
+                light.position.set(0, 3000, 0); scene.add(light); const
+                    dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                dirLight.position.set(0, 2000, 2000); dirLight.castShadow = true;
+                scene.add(dirLight); // Floor const planeGeo=new
+                THREE.PlaneGeometry(8000, 8000); const planeMat = new
+                    THREE.MeshLambertMaterial({ color: 0xe2e8f0 }); const plane = new
+                        THREE.Mesh(planeGeo, planeMat); plane.rotation.x = -Math.PI / 2;
+                plane.receiveShadow = true; scene.add(plane); // Materials const
                 matBase = new THREE.MeshStandardMaterial({
-                    color: currentCabinetColor, roughness: 0.1, metalness: 0.1
-                });
-
-                matDrawer = new THREE.MeshStandardMaterial({
-                    color: currentCabinetColor, roughness: 0.1, metalness: 0.1
-                });
-
-                matWall = new THREE.MeshStandardMaterial({
-                    color: currentCabinetColor, roughness: 0.1, metalness: 0.1
-                });
-
-                matCounter = new THREE.MeshStandardMaterial({
-                    color: 0x1a1a1a, roughness: 0.5, metalness: 0.2
-                });
-
-                matHandle = new THREE.MeshStandardMaterial({
-                    color: currentHandleColor, roughness: 0.4, metalness: 0.8
-                });
-
-                // Appliance materials 
+                    color:
+                        currentCabinetColor, roughness: 0.1, metalness: 0.1
+                }); const
+                    matDrawer = new THREE.MeshStandardMaterial({
+                        color:
+                            currentCabinetColor, roughness: 0.1, metalness: 0.1
+                    }); const
+                        matWall = new THREE.MeshStandardMaterial({
+                            color:
+                                currentCabinetColor, roughness: 0.1, metalness: 0.1
+                        }); const
+                            matCounter = new THREE.MeshStandardMaterial({
+                                color: 0x1a1a1a,
+                                roughness: 0.5, metalness: 0.2
+                            }); const matHandle = new
+                                THREE.MeshStandardMaterial({
+                                    color: currentHandleColor,
+                                    roughness: 0.4, metalness: 0.8
+                                }); // Appliance materials const
                 matSilver = new THREE.MeshStandardMaterial({
-                    color: 0xb5bcc2, metalness: 0.9, roughness: 0.3
-                }); // Inox renk 
-
+                    color: 0xb5bcc2,
+                    metalness: 0.9, roughness: 0.3
+                }); // Inox renk const
                 matDark = new THREE.MeshStandardMaterial({
-                    color: 0x1e293b, metalness: 0.6, roughness: 0.4
-                });
+                    color: 0x1e293b,
+                    metalness: 0.6, roughness: 0.4
+                }); const matGlass = new
+                    THREE.MeshStandardMaterial({
+                        color: 0x0f172a, metalness: 0.9,
+                        roughness: 0.1, transparent: true, opacity: 0.8
+                    }); const
+                        matRoomWall = new THREE.MeshStandardMaterial({
+                            color: 0xffffff,
+                            roughness: 0.9, metalness: 0.0
+                        }); const matSinkHole = new
+                            THREE.MeshStandardMaterial({
+                                color: 0x0a0a0a, roughness: 0.9,
+                                metalness: 0.1
+                            }); function create3DCabinet(cab) {
+                                const group = new THREE.Group();
+                                if (cab.kind === 'EMPTY_BASE' || cab.kind === 'EMPTY_WALL') { return group; }
 
-                matGlass = new THREE.MeshStandardMaterial({
-                    color: 0x0f172a, metalness: 0.9,
-                    roughness: 0.1, transparent: true, opacity: 0.8
-                });
+                                // If this is an appliance housing(except Evye which needs doors), don't draw the solid cabinet block to let the appliance mesh show through.
+                                if (cab.label && (cab.label.includes('Fırın') || cab.label.includes('Bulaşık') || cab.label.includes('Buzdolabı'))) {
+                                    // Just return an empty group, or maybe a back panel. Empty group is fine since appliance mesh will take the space.
+                                    return group;
+                                } const
+                                    bodyGeo = new THREE.BoxGeometry(cab.width_mm, cab.height_mm,
+                                        cab.depth_mm); let bodyMat = cab.kind === 'WALL' ? matWall :
+                                            matBase; const body = new THREE.Mesh(bodyGeo, bodyMat);
+                                body.castShadow = true; body.receiveShadow = true; group.add(body);
+                                if (cab.kind === 'BASE' || (cab.kind === 'FILLER' && cab.depth_mm >
+                                    400)) {
+                                    const legRadius = 20;
+                                    const legGeo = new THREE.CylinderGeometry(legRadius, legRadius,
+                                        100, 16);
+                                    const legMat = new THREE.MeshStandardMaterial({
+                                        color: 0x334155,
+                                        roughness: 0.8
+                                    });
 
-                matRoomWall = new THREE.MeshStandardMaterial({
-                    color: 0xffffff, roughness: 0.9, metalness: 0.0
-                });
+                                    const legY = -cab.height_mm / 2 - 50;
 
-                matSinkHole = new THREE.MeshStandardMaterial({
-                    color: 0x0a0a0a, roughness: 0.9, metalness: 0.1
-                });
+                                    if (cab.width_mm >= 60) {
+                                        const offsets = [
+                                            { x: -cab.width_mm / 2 + 25, z: cab.depth_mm / 2 - 30 },
+                                            { x: cab.width_mm / 2 - 25, z: cab.depth_mm / 2 - 30 },
+                                            { x: -cab.width_mm / 2 + 25, z: -cab.depth_mm / 2 + 30 },
+                                            { x: cab.width_mm / 2 - 25, z: -cab.depth_mm / 2 + 30 }
+                                        ];
+                                        offsets.forEach(pos => {
+                                            const leg = new THREE.Mesh(legGeo, legMat);
+                                            leg.position.set(pos.x, legY, pos.z);
+                                            group.add(leg);
+                                        });
+                                    }
+                                }
 
-                function create3DCabinet(cab) {
-                    const group = new THREE.Group();
-                    if (cab.kind === 'EMPTY_BASE' || cab.kind === 'EMPTY_WALL') { return group; }
+                                if (cab.kind === 'FILLER') return group;
 
-                    // If this is an appliance housing(except Evye which needs doors), don't draw the solid cabinet block to let the appliance mesh show through.
-                    if (cab.label && (cab.label.includes('Fırın') || cab.label.includes('Bulaşık') || cab.label.includes('Buzdolabı'))) {
-                        // Just return an empty group, or maybe a back panel. Empty group is fine since appliance mesh will take the space.
-                        return group;
-                    }
+                                const frontZ = cab.depth_mm / 2 + 1;
+                                const doorThickness = 18;
+                                const gap = 3;
 
-                    const bodyGeo = new THREE.BoxGeometry(cab.width_mm, cab.height_mm, cab.depth_mm);
-                    let bodyMat = cab.kind === 'WALL' ? matWall : matBase;
-                    const body = new THREE.Mesh(bodyGeo, bodyMat);
-                    body.castShadow = true;
-                    body.receiveShadow = true;
-                    group.add(body);
-                    if (cab.kind === 'BASE' || (cab.kind === 'FILLER' && cab.depth_mm >
-                        400)) {
-                        const legRadius = 20;
-                        const legGeo = new THREE.CylinderGeometry(legRadius, legRadius,
-                            100, 16);
-                        const legMat = new THREE.MeshStandardMaterial({
-                            color: 0x334155,
-                            roughness: 0.8
-                        });
+                                const matFront = cab.has_drawers ? matDrawer : (cab.kind ===
+                                    'WALL' ? matWall : matBase);
 
-                        const legY = -cab.height_mm / 2 - 50;
+                                if (cab.has_drawers) {
+                                    const dHeight = (cab.height_mm - gap * 4) / 3;
+                                    for (let i = 0; i < 3; i++) {
+                                        const dGeo = new THREE.BoxGeometry(cab.width_mm - gap * 2, dHeight, doorThickness);
+                                        const dMesh = new THREE.Mesh(dGeo, matFront);
+                                        dMesh.castShadow = true;
+                                        const dY = -cab.height_mm / 2 + gap + dHeight / 2 + i * (dHeight + gap);
+                                        dMesh.position.set(0, dY, frontZ + doorThickness / 2);
+                                        group.add(dMesh);
 
-                        if (cab.width_mm >= 60) {
-                            const offsets = [
-                                { x: -cab.width_mm / 2 + 25, z: cab.depth_mm / 2 - 30 },
-                                { x: cab.width_mm / 2 - 25, z: cab.depth_mm / 2 - 30 },
-                                { x: -cab.width_mm / 2 + 25, z: -cab.depth_mm / 2 + 30 },
-                                { x: cab.width_mm / 2 - 25, z: -cab.depth_mm / 2 + 30 }
-                            ];
-                            offsets.forEach(pos => {
-                                const leg = new THREE.Mesh(legGeo, legMat);
-                                leg.position.set(pos.x, legY, pos.z);
-                                group.add(leg);
-                            });
-                        }
-                    }
+                                        // handle (Centered horizontally on drawer fronts)
+                                        const hGeo = new THREE.BoxGeometry(100, 10, 20);
+                                        const hMesh = new THREE.Mesh(hGeo, matHandle);
+                                        hMesh.castShadow = true;
+                                        hMesh.position.set(0, dY, frontZ + doorThickness + 10);
+                                        group.add(hMesh);
+                                    }
+                                } else {
+                                    const doors = cab.width_mm >= 600
+                                        ? 2 : 1;
+                                    const dWidth = (cab.width_mm - gap * (doors + 1)) / doors;
+                                    const dHeight = cab.height_mm - gap * 2;
+                                    const handleHorizontal = cab.width_mm > cab.height_mm;
 
-                    if (cab.kind === 'FILLER') return group;
+                                    for (let i = 0; i < doors; i++) {
+                                        const dGeo = new THREE.BoxGeometry(dWidth, dHeight, doorThickness);
+                                        const dMesh = new THREE.Mesh(dGeo, matFront);
+                                        dMesh.castShadow = true;
+                                        const dX = doors === 1 ? 0 : (i === 0 ? -cab.width_mm / 4 : cab.width_mm / 4);
+                                        dMesh.position.set(dX, 0, frontZ + doorThickness / 2);
+                                        group.add(dMesh);
 
-                    const frontZ = cab.depth_mm / 2 + 1;
-                    const doorThickness = 18;
-                    const gap = 3;
+                                        // Professional handle placement (50mm offset) 
+                                        const offset = 50;
+                                        const handleHorizontal = cab.width_mm > cab.height_mm;
+                                        let hSizeX = handleHorizontal ? 120 : 12;
+                                        let hSizeY = handleHorizontal ? 12 : 120;
+                                        const hGeo = new THREE.BoxGeometry(hSizeX, hSizeY, 25);
+                                        const hMesh = new THREE.Mesh(hGeo, matHandle);
+                                        hMesh.castShadow = true;
 
-                    const matFront = cab.has_drawers ? matDrawer : (cab.kind ===
-                        'WALL' ? matWall : matBase);
+                                        let hX = 0;
+                                        if (doors === 1) {
+                                            hX = handleHorizontal ? 0 : (cab.width_mm / 2 - offset);
+                                        } else {
+                                            // Paired handles meet at the center lines
+                                            hX = i === 0 ? (dWidth / 2 - offset / 2) : (-dWidth / 2
+                                                + offset / 2);
+                                        }
 
-                    if (cab.has_drawers) {
-                        const dHeight = (cab.height_mm - gap * 4) / 3;
-                        for (let i = 0; i < 3; i++) {
-                            const dGeo = new THREE.BoxGeometry(cab.width_mm - gap * 2, dHeight, doorThickness);
-                            const dMesh = new THREE.Mesh(dGeo, matFront);
-                            dMesh.castShadow = true;
-                            const dY = -cab.height_mm / 2 + gap + dHeight / 2 + i * (dHeight + gap);
-                            dMesh.position.set(0, dY, frontZ + doorThickness / 2);
-                            group.add(dMesh);
+                                        let hY = (cab.kind === 'WALL') ? (-dHeight / 2 + offset) : (dHeight / 2 - offset);
+                                        // Adjust Y slightly for vertical handles so they don't start right at the edge
+                                        if (!handleHorizontal) {
+                                            hY = (cab.kind === 'WALL') ? (-dHeight / 2 + offset +
+                                                hSizeY / 2) : (dHeight / 2 - offset - hSizeY / 2);
+                                        }
 
-                            // handle (Centered horizontally on drawer fronts)
-                            const hGeo = new THREE.BoxGeometry(100, 10, 20);
-                            const hMesh = new THREE.Mesh(hGeo, matHandle);
-                            hMesh.castShadow = true;
-                            hMesh.position.set(0, dY, frontZ + doorThickness + 10);
-                            group.add(hMesh);
-                        }
-                    } else {
-                        const doors = cab.width_mm >= 600
-                            ? 2 : 1;
-                        const dWidth = (cab.width_mm - gap * (doors + 1)) / doors;
-                        const dHeight = cab.height_mm - gap * 2;
-                        const handleHorizontal = cab.width_mm > cab.height_mm;
-
-                        for (let i = 0; i < doors; i++) {
-                            const dGeo = new THREE.BoxGeometry(dWidth, dHeight, doorThickness);
-                            const dMesh = new THREE.Mesh(dGeo, matFront);
-                            dMesh.castShadow = true;
-                            const dX = doors === 1 ? 0 : (i === 0 ? -cab.width_mm / 4 : cab.width_mm / 4);
-                            dMesh.position.set(dX, 0, frontZ + doorThickness / 2);
-                            group.add(dMesh);
-
-                            // Professional handle placement (50mm offset) 
-                            const offset = 50;
-                            const handleHorizontal = cab.width_mm > cab.height_mm;
-                            let hSizeX = handleHorizontal ? 120 : 12;
-                            let hSizeY = handleHorizontal ? 12 : 120;
-                            const hGeo = new THREE.BoxGeometry(hSizeX, hSizeY, 25);
-                            const hMesh = new THREE.Mesh(hGeo, matHandle);
-                            hMesh.castShadow = true;
-
-                            let hX = 0;
-                            if (doors === 1) {
-                                hX = handleHorizontal ? 0 : (cab.width_mm / 2 - offset);
-                            } else {
-                                // Paired handles meet at the center lines
-                                hX = i === 0 ? (dWidth / 2 - offset / 2) : (-dWidth / 2
-                                    + offset / 2);
+                                        hMesh.position.set(hX, hY, frontZ + doorThickness + 12);
+                                        group.add(hMesh);
+                                    }
+                                }
+                                return group;
                             }
-
-                            let hY = (cab.kind === 'WALL') ? (-dHeight / 2 + offset) : (dHeight / 2 - offset);
-                            // Adjust Y slightly for vertical handles so they don't start right at the edge
-                            if (!handleHorizontal) {
-                                hY = (cab.kind === 'WALL') ? (-dHeight / 2 + offset +
-                                    hSizeY / 2) : (dHeight / 2 - offset - hSizeY / 2);
-                            }
-
-                            hMesh.position.set(hX, hY, frontZ + doorThickness + 12);
-                            group.add(hMesh);
-                        }
-                    }
-                    return group;
-                }
 
                 function create3DAppliance(appl, h, d) {
                     const group = new THREE.Group();
@@ -5567,11 +5275,7 @@
 
             let selectedApplPopover = null;
             function openApplEditPopover(appl) {
-                const typeMap = { FRIDGE: 'Buzdolabı', DW: 'Bulaşık Makinesi', WM: 'Çamaşır Makinesi', OVEN: 'Fırın', HOOD: 'Davlumbaz', SINK: 'Evye', CORNER: 'Kör Köşe' };
-                const typeLabel = typeMap[appl.type] || appl.type;
-                const labelStr = `📦 ${typeLabel} — ${appl.width_mm} mm`;
-                showToolSidebar(labelStr, 'appliance');
-
+                showToolSidebar();
                 document.getElementById('appl-edit-popover').style.display
                     = 'block';
                 document.getElementById('edit-popover').style.display
@@ -5842,46 +5546,6 @@
             });
 
             loadProjectsList();
-
-            // ==========================================
-            // TEMA DEĞİŞTİRME SİSTEMİ (Light / Dark)
-            // ==========================================
-            const themeBtn = document.getElementById('theme-toggle-btn');
-            let currentTheme = localStorage.getItem('cad-theme') || 'dark';
-
-            function applyTheme(theme) {
-                document.documentElement.setAttribute('data-theme', theme);
-                if (themeBtn) {
-                    themeBtn.textContent = theme === 'dark' ? '🌙 Koyu' : '☀️ Açık';
-                }
-                // Update Three.js background
-                try {
-                    if (renderer && scene) {
-                        scene.background = new THREE.Color(
-                            theme === 'dark' ? '#1e1e1e' : '#f3f4f6'
-                        );
-                        renderer.render(scene, camera);
-                    }
-                } catch (e) { }
-            }
-
-            // Apply saved theme on load
-            applyTheme(currentTheme);
-
-            if (themeBtn) {
-                themeBtn.addEventListener('click', () => {
-                    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                    localStorage.setItem('cad-theme', currentTheme);
-                    applyTheme(currentTheme);
-                    // Redraw 2D if active
-                    try {
-                        if (document.getElementById('view-2d').classList.contains('active')) {
-                            draw2D();
-                        }
-                    } catch (e) { }
-                });
-            }
-
         </script>
 </body>
 
