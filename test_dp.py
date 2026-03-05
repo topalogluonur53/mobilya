@@ -1,24 +1,30 @@
+import typing
+
 def solve_gap(gap_width, module_list):
-    if gap_width < 300:
-        return gap_width, []
+    gap_w = int(gap_width)
+    if gap_w < 300:
+        return gap_w, []
 
     if not module_list:
         module_list = [900, 800, 600, 500, 450, 400, 300]
-
-    # Initialize subset sum DP. dp[w] stores (cost, current modular sum, choice)
-    dp = [(float('inf'), 0)] * (gap_width + 1)
-    dp[0] = (0, 0)
-    choice = [-1] * (gap_width + 1)
     
-    for w in range(1, gap_width + 1):
-        best_cost = float('inf')
-        best_num = float('inf')
+    mods_int = [int(m) for m in module_list]
+
+    INF = 9999999
+    # Initialize subset sum DP. dp[w] stores (cost, current modular sum, choice)
+    dp = [(INF, INF) for _ in range(gap_w + 1)]
+    dp[0] = (0, 0)
+    choice = [-1 for _ in range(gap_w + 1)]
+    
+    for w in range(1, gap_w + 1):
+        best_cost = INF
+        best_num = INF
         best_choice = -1
         
-        for mod in module_list:
+        for mod in mods_int:
             if w >= mod:
-                prev_cost, prev_num = dp[w - mod]
-                if prev_cost != float('inf'):
+                prev_cost, prev_num = dp[w - mod] # type: ignore
+                if prev_cost != INF:
                     current_cost = prev_cost + 10 # 10 cost per module
                     
                     if mod < 400:
@@ -32,12 +38,12 @@ def solve_gap(gap_width, module_list):
         dp[w] = (best_cost, best_num)
         choice[w] = best_choice
         
-    best_total_cost = float('inf')
+    best_total_cost = INF
     best_width = 0
     
-    for w in range(gap_width + 1):
-        if dp[w][0] != float('inf'):
-            filler = gap_width - w
+    for w in range(gap_w + 1):
+        if dp[w][0] != INF:
+            filler = gap_w - w
             count = dp[w][1]
             
             # Formulate the cost
@@ -53,15 +59,15 @@ def solve_gap(gap_width, module_list):
                 
     mods = []
     curr = best_width
-    while curr > 0:
+    while curr > 0: # type: ignore
         c = choice[curr]
         if c == -1:
             break
-        mods.append(c)
-        curr -= c
+        mods.append(c) # type: ignore
+        curr -= c # type: ignore
         
-    filler = gap_width - sum(mods)
-    return filler, mods
+    final_filler = gap_w - sum(mods)
+    return final_filler, mods
 
 print(solve_gap(700, [600, 400, 300])) # expects filler=100, mods=[300,300] or filler=100 mods=[600]
 print(solve_gap(1200, [600, 400, 300])) # 600, 600

@@ -10,10 +10,12 @@ class Project(models.Model):
     panel_thickness = models.IntegerField(default=18)
     
     base_depth = models.IntegerField(default=600)
-    base_height = models.IntegerField(default=720)
+    base_height = models.IntegerField(default=760)
+    toe_kick_height = models.IntegerField(default=100)
+    countertop_height = models.IntegerField(default=40)
     gap_height = models.IntegerField(default=600)
     wall_depth = models.IntegerField(default=320)
-    wall_height = models.IntegerField(default=720)
+    wall_height = models.IntegerField(default=760)
     
     module_set = models.CharField(max_length=200, default='300,400,450,500,600,800,900')
 

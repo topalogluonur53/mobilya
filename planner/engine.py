@@ -1,4 +1,5 @@
-from .models import Project, Segment, Appliance, Cabinet
+import typing
+from .models import Project, Segment, Appliance, Cabinet # type: ignore
 
 def solve_gap(gap_width, module_list):
     """
@@ -6,25 +7,29 @@ def solve_gap(gap_width, module_list):
     bırakacak ve en ideal maliyeti (cost = filler*1000 + count*10) oluşturacak şekilde
     DP (dinamik programlama) ile hesaplar.
     """
-    if gap_width < 300:
-        return gap_width, []
+    gap_w = int(gap_width)
+    if gap_w < 300:
+        return gap_w, []
         
     if not module_list:
         module_list = [900, 800, 600, 500, 450, 400, 300]
         
-    dp = [(float('inf'), 0)] * (gap_width + 1)
+    mods_int = [int(m) for m in module_list]
+        
+    INF = 9999999
+    dp = [(INF, INF) for _ in range(gap_w + 1)]
     dp[0] = (0, 0)
-    choice = [-1] * (gap_width + 1)
+    choice = [-1 for _ in range(gap_w + 1)]
     
-    for w in range(1, gap_width + 1):
-        best_cost = float('inf')
-        best_num = float('inf')
+    for w in range(1, gap_w + 1):
+        best_cost = INF
+        best_num = INF
         best_choice = -1
         
-        for mod in module_list:
+        for mod in mods_int:
             if w >= mod:
-                prev_cost, prev_num = dp[w - mod]
-                if prev_cost != float('inf'):
+                prev_cost, prev_num = dp[w - mod] # type: ignore
+                if prev_cost != INF:
                     current_cost = prev_cost + 10 # 10 cost per module
                     
                     if mod < 400:
@@ -38,12 +43,12 @@ def solve_gap(gap_width, module_list):
         dp[w] = (best_cost, best_num)
         choice[w] = best_choice
         
-    best_total_cost = float('inf')
+    best_total_cost = INF
     best_width = 0
     
-    for w in range(gap_width + 1):
-        if dp[w][0] != float('inf'):
-            filler = gap_width - w
+    for w in range(gap_w + 1):
+        if dp[w][0] != INF:
+            filler = gap_w - w
             count = dp[w][1]
             
             # Formulate the cost
@@ -59,15 +64,15 @@ def solve_gap(gap_width, module_list):
                 
     mods = []
     curr = best_width
-    while curr > 0:
+    while curr > 0: # type: ignore
         c = choice[curr]
         if c == -1:
             break
-        mods.append(c)
-        curr -= c
+        mods.append(c) # type: ignore
+        curr -= c # type: ignore
         
-    filler = gap_width - sum(mods)
-    return filler, mods
+    final_filler = gap_w - sum(mods)
+    return final_filler, mods
 
 def generate_cabinets(project):
     try:
@@ -120,7 +125,7 @@ def generate_cabinets(project):
         wall_obstacles.sort(key=lambda o: o.start_mm)
 
         # Check constraints per level
-        def check_bounds_and_overlap(obs_list):
+        def check_bounds_and_overlap(obs_list: list):
             for i in range(len(obs_list)):
                 o = obs_list[i]
                 if o.start_mm < 0 or o.end_mm > segment.length_mm:
@@ -177,7 +182,7 @@ def generate_cabinets(project):
             
             # create cabinet above APPL (Hood / Fridge)
             if hasattr(obs.obj, 'type'):
-                top_y = 100 + project.base_height + 40 + getattr(project, 'gap_height', 600) + project.wall_height
+                top_y = project.toe_kick_height + project.base_height + project.countertop_height + getattr(project, 'gap_height', 600) + project.wall_height
                 if obs.type == 'HOOD':
                     hood_h = obs.obj.height_mm if obs.obj.height_mm else 300
                     h = project.wall_height - hood_h
