@@ -4952,96 +4952,133 @@
             }
 
             /* ============================================
-               BIN PACKING — Guillotine (Guillotine Shelf Algorithm)
+               BIN PACKING — MaxRects (BSSF) for superior optimization
                ============================================ */
             function guillotinePack(sheetsW, sheetsH, kerf, parts) {
-                // parts: [{w, h, label, color}] — must be sorted biggest first
-                const sorted = [...parts].sort((a, b) => (b.w * b.h) - (a.w * a.h));
+                // Sorter: By longest side descending, then area descending
+                const sorted = [...parts].sort((a, b) => {
+                    const maxA = Math.max(a.w, a.h);
+                    const maxB = Math.max(b.w, b.h);
+                    if (maxB !== maxA) return maxB - maxA;
+                    return (b.w * b.h) - (a.w * a.h);
+                });
 
-                const sheets = []; // [{placed: [{x,y,w,h,label,color}], freeRects: [{x,y,w,h}]}]
+                const virtW = sheetsW + kerf;
+                const virtH = sheetsH + kerf;
+                const sheets = [];
 
                 function newSheet() {
-                    return { placed: [], freeRects: [{ x: 0, y: 0, w: sheetsW, h: sheetsH }] };
+                    return { placed: [], freeRects: [{ x: 0, y: 0, w: virtW, h: virtH }] };
                 }
 
-                function findBestRect(freeRects, pw, ph) {
+                function findBest(freeRects, pw, ph) {
                     let best = null;
                     let bestScore = Infinity;
+                    let bestArea = Infinity;
+
                     for (const r of freeRects) {
-                        // Try original orientation
                         if (pw <= r.w && ph <= r.h) {
                             const score = Math.min(r.w - pw, r.h - ph);
-                            if (score < bestScore) { bestScore = score; best = { rect: r, rotated: false }; }
+                            const area = r.w * r.h;
+                            if (score < bestScore || (score === bestScore && area < bestArea)) {
+                                bestScore = score; bestArea = area;
+                                best = { rect: r, rotated: false, x: r.x, y: r.y };
+                            }
                         }
-                        // Try rotated
                         if (ph <= r.w && pw <= r.h) {
                             const score = Math.min(r.w - ph, r.h - pw);
-                            if (score < bestScore) { bestScore = score; best = { rect: r, rotated: true }; }
+                            const area = r.w * r.h;
+                            if (score < bestScore || (score === bestScore && area < bestArea)) {
+                                bestScore = score; bestArea = area;
+                                best = { rect: r, rotated: true, x: r.x, y: r.y };
+                            }
                         }
                     }
                     return best;
                 }
 
-                function splitFreeRect(sheet, usedRect, pieceW, pieceH) {
-                    // Remove the used rectangle and add two new ones (horizontal split)
-                    const idx = sheet.freeRects.indexOf(usedRect);
-                    if (idx === -1) return;
-                    sheet.freeRects.splice(idx, 1);
-
-                    const rightW = usedRect.w - pieceW - kerf;
-                    const bottomH = usedRect.h - pieceH - kerf;
-
-                    if (rightW > 0 && pieceH > 0) {
-                        sheet.freeRects.push({
-                            x: usedRect.x + pieceW + kerf,
-                            y: usedRect.y,
-                            w: rightW,
-                            h: pieceH
-                        });
+                function splitNode(freeRects, usedNode) {
+                    const newRects = [];
+                    for (const fr of freeRects) {
+                        if (usedNode.x >= fr.x + fr.w || usedNode.x + usedNode.w <= fr.x ||
+                            usedNode.y >= fr.y + fr.h || usedNode.y + usedNode.h <= fr.y) {
+                            newRects.push(fr);
+                            continue;
+                        }
+                        if (usedNode.x + usedNode.w < fr.x + fr.w) {
+                            newRects.push({ x: usedNode.x + usedNode.w, y: fr.y, w: fr.x + fr.w - (usedNode.x + usedNode.w), h: fr.h });
+                        }
+                        if (usedNode.x > fr.x) {
+                            newRects.push({ x: fr.x, y: fr.y, w: usedNode.x - fr.x, h: fr.h });
+                        }
+                        if (usedNode.y + usedNode.h < fr.y + fr.h) {
+                            newRects.push({ x: fr.x, y: usedNode.y + usedNode.h, w: fr.w, h: fr.y + fr.h - (usedNode.y + usedNode.h) });
+                        }
+                        if (usedNode.y > fr.y) {
+                            newRects.push({ x: fr.x, y: fr.y, w: fr.w, h: usedNode.y - fr.y });
+                        }
                     }
-                    if (bottomH > 0 && usedRect.w > 0) {
-                        sheet.freeRects.push({
-                            x: usedRect.x,
-                            y: usedRect.y + pieceH + kerf,
-                            w: usedRect.w,
-                            h: bottomH
-                        });
+
+                    const pruned = [];
+                    for (let i = 0; i < newRects.length; i++) {
+                        let isContained = false;
+                        for (let j = 0; j < newRects.length; j++) {
+                            if (i !== j && newRects[i].x >= newRects[j].x && newRects[i].y >= newRects[j].y &&
+                                newRects[i].x + newRects[i].w <= newRects[j].x + newRects[j].w &&
+                                newRects[i].y + newRects[i].h <= newRects[j].y + newRects[j].h) {
+                                isContained = true;
+                                break;
+                            }
+                        }
+                        if (!isContained) pruned.push(newRects[i]);
                     }
+                    return pruned;
                 }
 
                 for (const part of sorted) {
                     let placed = false;
+                    const pwKerf = part.w + kerf;
+                    const phKerf = part.h + kerf;
+
                     for (const sheet of sheets) {
-                        const fit = findBestRect(sheet.freeRects, part.w, part.h);
+                        const fit = findBest(sheet.freeRects, pwKerf, phKerf);
                         if (fit) {
                             const pw = fit.rotated ? part.h : part.w;
                             const ph = fit.rotated ? part.w : part.h;
+                            const usedW = pw + kerf;
+                            const usedH = ph + kerf;
+
                             sheet.placed.push({
-                                x: fit.rect.x, y: fit.rect.y,
+                                x: fit.x, y: fit.y,
                                 w: pw, h: ph,
                                 cabinet: part.cabinet || '',
                                 label: part.label, color: part.color,
                                 rotated: fit.rotated
                             });
-                            splitFreeRect(sheet, fit.rect, pw, ph);
+
+                            sheet.freeRects = splitNode(sheet.freeRects, { x: fit.x, y: fit.y, w: usedW, h: usedH });
                             placed = true;
                             break;
                         }
                     }
                     if (!placed) {
                         const ns = newSheet();
-                        const fit = findBestRect(ns.freeRects, part.w, part.h);
+                        const fit = findBest(ns.freeRects, pwKerf, phKerf);
                         if (fit) {
                             const pw = fit.rotated ? part.h : part.w;
                             const ph = fit.rotated ? part.w : part.h;
+                            const usedW = pw + kerf;
+                            const usedH = ph + kerf;
+
                             ns.placed.push({
-                                x: fit.rect.x, y: fit.rect.y,
+                                x: fit.x, y: fit.y,
                                 w: pw, h: ph,
                                 cabinet: part.cabinet || '',
                                 label: part.label, color: part.color,
                                 rotated: fit.rotated
                             });
-                            splitFreeRect(ns, fit.rect, pw, ph);
+
+                            ns.freeRects = splitNode(ns.freeRects, { x: fit.x, y: fit.y, w: usedW, h: usedH });
                         }
                         sheets.push(ns);
                     }
