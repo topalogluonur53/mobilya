@@ -1,6 +1,6 @@
-﻿asgiref==3.11.1
-Django==6.0.3
-django-cors-headers==4.9.0
-djangorestframework==3.16.1
-sqlparse==0.5.5
-tzdata==2025.3
+﻿Django>=5.0,<6.0
+django-cors-headers>=4.0
+djangorestframework>=3.14
+asgiref>=3.7
+sqlparse>=0.4
+tzdata
