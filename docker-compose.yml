@@ -2,11 +2,12 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    image: ghcr.io/topalogluonur53/mobilya:latest
     container_name: CAD_Planlayici
     restart: always
     ports:
-      - "8000:8000"
+      - "4000:4000"
+      - "4040:4040"
     volumes:
       # Veritabanının CasaOS kapanıp açıldığında silinmesini engeller
       - ./db.sqlite3:/app/db.sqlite3
@@ -19,6 +20,7 @@ x-casaos:
     - arm64
     - arm
   main: app
+  port_map: "4000"
   title:
     custom: CAD Planlayıcı
   description:

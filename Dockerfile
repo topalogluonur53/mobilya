@@ -21,7 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 COPY . .
 
 # Port aç
-EXPOSE 8000
+EXPOSE 4000
+EXPOSE 4040
 
 # Veritabanını güncelle ve Gunicorn sunucusu ile ayağa kalk
-CMD python manage.py migrate && gunicorn --bind 0.0.0.0:8000 config.wsgi:application
+CMD python manage.py migrate && gunicorn --bind 0.0.0.0:4000 config.wsgi:application
