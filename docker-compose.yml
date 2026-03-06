@@ -1,18 +1,19 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
     image: ghcr.io/topalogluonur53/mobilya:latest
     container_name: CAD_Planlayici
-    restart: always
+    restart: unless-stopped
     ports:
       - "4000:4000"
       - "4040:4040"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
     volumes:
-      # Veritabanının CasaOS kapanıp açıldığında silinmesini engeller
-      - ./db.sqlite3:/app/db.sqlite3
-      # Statik dosyaların klasörünü harici tutar
-      - ./static:/app/static
+      - /DATA/AppData/mobilya/db.sqlite3:/app/db.sqlite3
+      - /DATA/AppData/mobilya/static:/app/static
 
 x-casaos:
   architectures:
@@ -22,10 +23,13 @@ x-casaos:
   main: app
   port_map: "4000"
   title:
-    custom: CAD Planlayıcı
+    custom: Mobilya Planlayıcı
+
   description:
-    en: Mutfak Dolabı 3D CAD Planlama ve Kesim Listesi Uygulaması
-    tr: Mutfak Dolabı 3D CAD Planlama ve Kesim Listesi Uygulaması
-  icon: "https://cdn-icons-png.flaticon.com/512/3052/3052210.png"
-  category: "Utilities"
-  author: "onur topaloglu"
+    en: Cabinet planning and cutlist tool
+    tr: Dolap planlama ve kesim listesi uygulaması
+
+  icon: https://cdn-icons-png.flaticon.com/512/3052/3052210.png
+
+  category: Utilities
+  author: Onur Topaloğlu
