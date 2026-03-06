@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "8090:8000"
+      - "4030:4000"
 
     environment:
       - PYTHONDONTWRITEBYTECODE=1
